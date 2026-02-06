@@ -71,15 +71,9 @@ Your credentials stay on your computer and are only sent to mountaineers.org.
 
 ### ChatGPT Desktop
 
-ChatGPT Desktop supports MCP servers through its Developer Mode.
+ChatGPT Desktop supports MCP through [Developer Mode](https://help.openai.com/en/articles/12584461-developer-mode-apps-and-full-mcp-connectors-in-chatgpt-beta), but only **remote HTTP servers** -- it cannot run local command-line tools like Claude Desktop can. To use this server with ChatGPT Desktop, you would need to run it behind a tunnel (e.g., [mcp.run](https://mcp.run) or [ngrok](https://ngrok.com)). This is not yet streamlined; we plan to add Streamable HTTP transport in a future release.
 
-1. Open ChatGPT Desktop
-2. Go to **Settings > Connectors > Advanced** and enable **Developer Mode**
-3. Go to **Settings > Connectors > Create**
-4. Add a new local stdio connector with command `npx` and arguments `-y mountaineers-mcp`
-5. Set environment variables `MOUNTAINEERS_USERNAME` and `MOUNTAINEERS_PASSWORD` if you want account access
-
-> Note: Developer Mode requires a ChatGPT Pro or Plus subscription.
+> Requires ChatGPT Plus, Pro, Team, or Enterprise.
 
 ### Claude Code (CLI)
 
