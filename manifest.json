@@ -1,0 +1,60 @@
+{
+  "manifest_version": "0.3",
+  "name": "mountaineers-mcp",
+  "display_name": "Mountaineers",
+  "version": "0.0.0",
+  "description": "Search activities, courses, and trip reports on mountaineers.org",
+  "author": {
+    "name": "dreamiurg",
+    "url": "https://github.com/dreamiurg"
+  },
+  "repository": "https://github.com/dreamiurg/mountaineers-mcp",
+  "homepage": "https://www.npmjs.com/package/mountaineers-mcp",
+  "license": "MIT",
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "MOUNTAINEERS_USERNAME": "${user_config.username}",
+        "MOUNTAINEERS_PASSWORD": "${user_config.password}"
+      }
+    }
+  },
+  "user_config": {
+    "username": {
+      "type": "string",
+      "title": "Mountaineers Username",
+      "description": "Your mountaineers.org login (optional - only needed for activity history, rosters, and profiles)",
+      "required": false
+    },
+    "password": {
+      "type": "string",
+      "title": "Mountaineers Password",
+      "description": "Your mountaineers.org password",
+      "required": false,
+      "sensitive": true
+    }
+  },
+  "tools": [
+    {
+      "name": "search_activities",
+      "description": "Search for outdoor activities on mountaineers.org"
+    },
+    { "name": "search_courses", "description": "Search for courses, clinics, and seminars" },
+    { "name": "search_trip_reports", "description": "Search trip reports" },
+    { "name": "get_activity", "description": "Get detailed information about a specific activity" },
+    {
+      "name": "get_trip_report",
+      "description": "Get detailed information about a specific trip report"
+    },
+    { "name": "whoami", "description": "Get the currently logged-in user's info" },
+    { "name": "get_my_activities", "description": "Get your activity history" },
+    { "name": "get_my_courses", "description": "Get your course history" },
+    { "name": "get_member_profile", "description": "Get a member's profile information" },
+    { "name": "get_activity_roster", "description": "Get the participant roster for an activity" }
+  ],
+  "keywords": ["mountaineers", "hiking", "mountaineering", "mcp"]
+}

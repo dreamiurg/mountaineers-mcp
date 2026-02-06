@@ -29,13 +29,24 @@ The AI reads the Mountaineers website, understands the results, and gives you a 
 
 ## Setup
 
-You need [Node.js](https://nodejs.org) 18 or later installed on your computer. Then follow the instructions for your AI app below.
+Follow the instructions for your AI app below.
 
 ### Claude Desktop
 
-1. Open Claude Desktop
-2. Go to **Settings > Developer > Edit Config**
-3. Paste this and save:
+1. Download `mountaineers-mcp-X.Y.Z.mcpb` from the [latest release](https://github.com/dreamiurg/mountaineers-mcp/releases/latest)
+2. Open Claude Desktop → **Settings → Extensions → Install Extension**
+3. Select the downloaded `.mcpb` file
+4. Enter your mountaineers.org credentials if you want account access (optional)
+
+That's it -- no Node.js install required.
+
+<details>
+<summary>Manual setup (alternative)</summary>
+
+Requires [Node.js](https://nodejs.org) 18+.
+
+1. Go to **Settings > Developer > Edit Config**
+2. Paste this and save:
 
 ```json
 {
@@ -48,7 +59,7 @@ You need [Node.js](https://nodejs.org) 18 or later installed on your computer. T
 }
 ```
 
-4. **Quit and reopen** Claude Desktop (not just close the window -- fully quit)
+3. **Quit and reopen** Claude Desktop (not just close the window -- fully quit)
 
 To also access your account (activity history, rosters, etc.), add your mountaineers.org credentials:
 
@@ -68,6 +79,7 @@ To also access your account (activity history, rosters, etc.), add your mountain
 ```
 
 Your credentials stay on your computer and are only sent to mountaineers.org.
+</details>
 
 ### ChatGPT Desktop
 

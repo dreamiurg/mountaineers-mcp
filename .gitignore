@@ -11,3 +11,7 @@ coverage/
 
 # Abacus
 .abacus/
+
+# MCPB build staging
+.mcpb-build/
+*.mcpb
