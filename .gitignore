@@ -8,3 +8,6 @@ coverage/
 # Beads issue tracker (local)
 .beads/
 .bv/
+
+# Abacus
+.abacus/
