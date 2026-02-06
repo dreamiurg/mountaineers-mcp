@@ -7,6 +7,7 @@ import type {
   MyActivity,
   MyCourse,
   RosterEntry,
+  RouteSummary,
   SearchResult,
   TripReportDetail,
   TripReportSummary,
@@ -454,6 +455,28 @@ function parseHumanDate(dateStr: string): string | null {
   const month = String(parsed.getMonth() + 1).padStart(2, "0");
   const day = String(parsed.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+export function parseRouteResults($: CheerioAPI, page: number): SearchResult<RouteSummary> {
+  const totalCount = parseResultCount($);
+  const items: RouteSummary[] = [];
+
+  $(".result-item").each((_i, el) => {
+    const $el = $(el);
+    items.push({
+      title: text($el, ".result-title a") ?? "",
+      url: href($el, ".result-title a") ?? "",
+      type: text($el, ".result-type"),
+      description: text($el, ".result-summary"),
+    });
+  });
+
+  return {
+    total_count: totalCount,
+    items,
+    page,
+    has_more: (page + 1) * 20 < totalCount,
+  };
 }
 
 /** Extract uid slug from the last path segment of a URL. */

@@ -57,7 +57,8 @@
     { "name": "get_my_activities", "description": "Get your registered activities" },
     { "name": "get_my_courses", "description": "Get your course enrollments" },
     { "name": "get_member_profile", "description": "Get a member's profile information" },
-    { "name": "get_activity_roster", "description": "Get the participant roster for an activity" }
+    { "name": "get_activity_roster", "description": "Get the participant roster for an activity" },
+    { "name": "search_routes", "description": "Search routes and places on mountaineers.org" }
   ],
   "keywords": ["mountaineers", "hiking", "mountaineering", "mcp"]
 }

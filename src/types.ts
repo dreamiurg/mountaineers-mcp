@@ -122,6 +122,13 @@ export interface MyCourse {
   result: string | null;
 }
 
+export interface RouteSummary {
+  title: string;
+  url: string;
+  type: string | null;
+  description: string | null;
+}
+
 export interface SearchResult<T> {
   total_count: number;
   items: T[];

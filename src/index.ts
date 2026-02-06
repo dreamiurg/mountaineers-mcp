@@ -10,6 +10,7 @@ import { getMyCourses, getMyCoursesSchema } from "./tools/get-my-courses.js";
 import { getTripReport, getTripReportSchema } from "./tools/get-trip-report.js";
 import { searchActivities, searchActivitiesSchema } from "./tools/search-activities.js";
 import { searchCourses, searchCoursesSchema } from "./tools/search-courses.js";
+import { searchRoutes, searchRoutesSchema } from "./tools/search-routes.js";
 import { searchTripReports, searchTripReportsSchema } from "./tools/search-trip-reports.js";
 import { whoami } from "./tools/whoami.js";
 
@@ -67,6 +68,23 @@ server.tool(
   async (input) => {
     try {
       const result = await searchTripReports(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "search_routes",
+  "Search routes and places on mountaineers.org. Filter by activity type, difficulty, climbing category, and more.",
+  searchRoutesSchema.shape,
+  async (input) => {
+    try {
+      const result = await searchRoutes(client, input);
       return { content: [{ type: "text", text: formatResult(result) }] };
     } catch (e) {
       return {
