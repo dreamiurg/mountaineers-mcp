@@ -39,7 +39,8 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage",
     "sast": "semgrep scan --config auto --error .",
-    "ci": "npm run check && npm run sast && npm run test:coverage && npm run build"
+    "ci": "npm run check && npm run sast && npm run test:coverage && npm run build",
+    "build:mcpb": "sh scripts/build-mcpb.sh"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
@@ -52,6 +53,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "@anthropic-ai/mcpb": "^2.1.2"
   }
 }

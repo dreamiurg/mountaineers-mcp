@@ -1,0 +1,10 @@
+src/
+coverage/
+.github/
+.git/
+*.test.*
+*.spec.*
+tsconfig.json
+biome.json
+.beads/
+.omc/
