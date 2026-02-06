@@ -5,7 +5,7 @@
 
 ## What is this?
 
-This lets AI assistants like Claude search and browse [mountaineers.org](https://www.mountaineers.org) on your behalf. Instead of clicking through the website, you can ask questions in plain English:
+This lets AI assistants like Claude and ChatGPT search and browse [mountaineers.org](https://www.mountaineers.org) on your behalf. Instead of clicking through the website, you can ask questions in plain English:
 
 - *"Find me a beginner-friendly day hike near Seattle this weekend"*
 - *"What scrambles are available in August?"*
@@ -27,13 +27,15 @@ The AI reads the Mountaineers website, understands the results, and gives you a 
 - See your course history
 - View member profiles and activity rosters
 
-## Quick setup
+## Setup
 
-You need [Node.js](https://nodejs.org) 18 or later installed on your computer.
+You need [Node.js](https://nodejs.org) 18 or later installed on your computer. Then follow the instructions for your AI app below.
 
 ### Claude Desktop
 
-Open **Settings > Developer > Edit Config** and add:
+1. Open Claude Desktop
+2. Go to **Settings > Developer > Edit Config**
+3. Paste this and save:
 
 ```json
 {
@@ -46,7 +48,9 @@ Open **Settings > Developer > Edit Config** and add:
 }
 ```
 
-To use features that require login, add your mountaineers.org credentials:
+4. **Quit and reopen** Claude Desktop (not just close the window -- fully quit)
+
+To also access your account (activity history, rosters, etc.), add your mountaineers.org credentials:
 
 ```json
 {
@@ -63,28 +67,29 @@ To use features that require login, add your mountaineers.org credentials:
 }
 ```
 
-### VS Code / Cursor
+Your credentials stay on your computer and are only sent to mountaineers.org.
 
-Add to your `.vscode/mcp.json` (or global settings):
+### ChatGPT Desktop
 
-```json
-{
-  "servers": {
-    "mountaineers": {
-      "command": "npx",
-      "args": ["-y", "mountaineers-mcp"],
-      "env": {
-        "MOUNTAINEERS_USERNAME": "your-username",
-        "MOUNTAINEERS_PASSWORD": "your-password"
-      }
-    }
-  }
-}
-```
+ChatGPT Desktop supports MCP servers through its Developer Mode.
+
+1. Open ChatGPT Desktop
+2. Go to **Settings > Connectors > Advanced** and enable **Developer Mode**
+3. Go to **Settings > Connectors > Create**
+4. Add a new local stdio connector with command `npx` and arguments `-y mountaineers-mcp`
+5. Set environment variables `MOUNTAINEERS_USERNAME` and `MOUNTAINEERS_PASSWORD` if you want account access
+
+> Note: Developer Mode requires a ChatGPT Pro or Plus subscription.
 
 ### Claude Code (CLI)
 
-Add to your `.mcp.json`:
+Run this in your terminal:
+
+```bash
+claude mcp add mountaineers -- npx -y mountaineers-mcp
+```
+
+Or add to your `.mcp.json`:
 
 ```json
 {
@@ -99,6 +104,26 @@ Add to your `.mcp.json`:
     }
   }
 }
+```
+
+### Codex CLI
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.mountaineers]
+command = "npx"
+args = ["-y", "mountaineers-mcp"]
+
+[mcp_servers.mountaineers.env]
+MOUNTAINEERS_USERNAME = "your-username"
+MOUNTAINEERS_PASSWORD = "your-password"
+```
+
+Or use the CLI:
+
+```bash
+codex mcp add mountaineers -- npx -y mountaineers-mcp
 ```
 
 ## Tools reference
