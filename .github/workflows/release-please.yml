@@ -46,22 +46,11 @@ jobs:
         run: npm publish --provenance --access public
 
       - name: Build MCPB
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          STAGING=".mcpb-build"
-          rm -rf "$STAGING" && mkdir -p "$STAGING"
-          node -e "
-            const m = JSON.parse(require('fs').readFileSync('manifest.json','utf8'));
-            m.version = '$VERSION';
-            require('fs').writeFileSync('$STAGING/manifest.json', JSON.stringify(m,null,2)+'\n');
-          "
-          cp -r dist "$STAGING/dist"
-          cp package.json package-lock.json "$STAGING/"
-          cd "$STAGING" && npm ci --omit=dev --ignore-scripts && cd ..
-          npx @anthropic-ai/mcpb pack "$STAGING"
-          rm -rf "$STAGING"
+        run: npm run build:mcpb
 
       - name: Upload MCPB to release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ needs.release-please.outputs.tag_name }}" *.mcpb
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          gh release upload "${{ needs.release-please.outputs.tag_name }}" "mountaineers-mcp-${VERSION}.mcpb"

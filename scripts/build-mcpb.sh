@@ -1,6 +1,11 @@
 #!/bin/sh
 set -eu
 
+if [ ! -d "dist" ]; then
+  echo "Error: dist/ not found. Run 'npm run build' first." >&2
+  exit 1
+fi
+
 VERSION=$(node -p "require('./package.json').version")
 STAGING=".mcpb-build"
 
@@ -8,10 +13,10 @@ rm -rf "$STAGING"
 mkdir -p "$STAGING"
 
 # Copy manifest with correct version
-node -e "
+VERSION="$VERSION" STAGING="$STAGING" node -e "
   const m = JSON.parse(require('fs').readFileSync('manifest.json', 'utf8'));
-  m.version = '$VERSION';
-  require('fs').writeFileSync('$STAGING/manifest.json', JSON.stringify(m, null, 2) + '\n');
+  m.version = process.env.VERSION;
+  require('fs').writeFileSync(process.env.STAGING + '/manifest.json', JSON.stringify(m, null, 2) + '\n');
 "
 
 # Copy compiled server
