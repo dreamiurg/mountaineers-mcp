@@ -22,7 +22,7 @@ export async function searchCourses(
 
   if (input.query) params.append("c2", input.query);
   if (input.activity_type) params.append("c4[]", input.activity_type);
-  if (input.branch) params.append("c8[]", input.branch);
+  if (input.branch) params.append("c7[]", input.branch);
   if (input.difficulty) params.append("c15[]", input.difficulty);
   if (input.open_only) params.append("c17", "1");
 

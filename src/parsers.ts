@@ -27,6 +27,18 @@ function href(
   return raw.startsWith("http") ? raw : `${BASE_URL}${raw}`;
 }
 
+function textWithoutLabels(
+  el: ReturnType<CheerioAPI>,
+  selector: string
+): string | null {
+  const target = el.find(selector);
+  if (!target.length) return null;
+  const clone = target.clone();
+  clone.find("label").remove();
+  const t = clone.text().trim().replace(/\s+/g, " ");
+  return t || null;
+}
+
 function parseResultCount($: CheerioAPI): number {
   const countText = $("#faceted-result-count, .faceted-result-count")
     .text()
@@ -49,10 +61,10 @@ export function parseActivityResults(
       url: href($el, ".result-title a") ?? "",
       type: text($el, ".result-type"),
       date: text($el, ".result-date"),
-      difficulty: text($el, ".result-difficulty"),
-      availability: text($el, ".result-availability"),
+      difficulty: text($el, ".result-difficulty")?.replace(/^Difficulty:\s*/i, "") ?? null,
+      availability: textWithoutLabels($el, ".result-availability"),
       branch: text($el, ".result-branch"),
-      leader: text($el, ".result-leader a"),
+      leader: textWithoutLabels($el, ".result-leader"),
       leader_url: href($el, ".result-leader a"),
       description: text($el, ".result-summary"),
       prerequisites: text($el, ".result-prereqs"),
@@ -190,12 +202,18 @@ export function parseActivityDetail(
       detail.meeting_place = content;
   });
 
-  // Tabs content
+  // Tabs content - normalize excessive whitespace from HTML indentation
   $(".tabs .tab").each((_i, el) => {
     const $tab = $(el);
     const tabTitle = $tab.find(".tab-title").text().trim().toLowerCase();
-    const tabContent = $tab.find(".tab-content").text().trim();
-    if (!tabContent) return;
+    const rawContent = $tab.find(".tab-content").text().trim();
+    if (!rawContent) return;
+    // Collapse runs of whitespace but preserve single newlines for readability
+    const tabContent = rawContent
+      .replace(/[ \t]+/g, " ")
+      .replace(/ ?\n ?/g, "\n")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
 
     if (tabTitle.includes("route") || tabTitle.includes("place"))
       detail.route_place = tabContent;
@@ -220,9 +238,9 @@ export function parseCourseResults(
       url: href($el, ".result-title a") ?? "",
       date: text($el, ".result-date"),
       prerequisites: text($el, ".result-prereqs"),
-      availability: text($el, ".result-availability"),
+      availability: textWithoutLabels($el, ".result-availability"),
       branch: text($el, ".result-branch"),
-      leader: text($el, ".result-leader a"),
+      leader: textWithoutLabels($el, ".result-leader"),
       leader_url: href($el, ".result-leader a"),
       description: text($el, ".result-summary"),
     });
