@@ -30,8 +30,10 @@ cd "$STAGING"
 npm ci --omit=dev --ignore-scripts
 cd ..
 
-# Pack
+# Pack (mcpb names output after the directory, so rename it)
+OUTFILE="mountaineers-mcp-${VERSION}.mcpb"
 npx @anthropic-ai/mcpb pack "$STAGING"
+mv "${STAGING}.mcpb" "$OUTFILE"
 
 rm -rf "$STAGING"
-echo "Built mountaineers-mcp-${VERSION}.mcpb"
+echo "Built ${OUTFILE}"
