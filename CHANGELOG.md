@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.2.0...v1.2.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* mcpb manifest validation and output filename ([#17](https://github.com/dreamiurg/mountaineers-mcp/issues/17)) ([f180cd3](https://github.com/dreamiurg/mountaineers-mcp/commit/f180cd3ae6ef9ed11ab81310a3421d751c5857e4))
+
 ## [1.2.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.1.1...v1.2.0) (2026-02-06)
 
 
