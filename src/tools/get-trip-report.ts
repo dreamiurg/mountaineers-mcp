@@ -11,7 +11,7 @@ export type GetTripReportInput = z.infer<typeof getTripReportSchema>;
 
 export async function getTripReport(
   client: MountaineersClient,
-  input: GetTripReportInput
+  input: GetTripReportInput,
 ): Promise<TripReportDetail> {
   const url = input.url.startsWith("http")
     ? input.url

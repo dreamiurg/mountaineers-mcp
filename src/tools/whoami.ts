@@ -6,9 +6,7 @@ export interface WhoamiResult {
   profile_url: string;
 }
 
-export async function whoami(
-  client: MountaineersClient
-): Promise<WhoamiResult> {
+export async function whoami(client: MountaineersClient): Promise<WhoamiResult> {
   await client.ensureLoggedIn();
   const $ = await client.fetchHtml("/", { authenticated: true });
 
@@ -19,9 +17,7 @@ export async function whoami(
     const href = $(el).attr("href") || "";
     const text = $(el).text().trim();
     if (text === "My Profile" && href.includes("/members/")) {
-      foundUrl = href.startsWith("http")
-        ? href
-        : `${client.baseUrl}${href}`;
+      foundUrl = href.startsWith("http") ? href : `${client.baseUrl}${href}`;
       return false; // break
     }
   });
