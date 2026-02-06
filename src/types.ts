@@ -112,6 +112,16 @@ export interface RosterEntry {
   avatar: string | null;
 }
 
+export interface MyCourse {
+  title: string;
+  url: string;
+  enrolled_date: string | null;
+  good_through: string | null;
+  role: string | null;
+  status: string | null;
+  result: string | null;
+}
+
 export interface SearchResult<T> {
   total_count: number;
   items: T[];

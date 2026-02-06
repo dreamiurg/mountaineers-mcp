@@ -54,8 +54,8 @@
       "description": "Get detailed information about a specific trip report"
     },
     { "name": "whoami", "description": "Get the currently logged-in user's info" },
-    { "name": "get_my_activities", "description": "Get your activity history" },
-    { "name": "get_my_courses", "description": "Get your course history" },
+    { "name": "get_my_activities", "description": "Get your registered activities" },
+    { "name": "get_my_courses", "description": "Get your course enrollments" },
     { "name": "get_member_profile", "description": "Get a member's profile information" },
     { "name": "get_activity_roster", "description": "Get the participant roster for an activity" }
   ],

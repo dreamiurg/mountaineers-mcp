@@ -4,6 +4,8 @@ import type {
   ActivitySummary,
   CourseSummary,
   MemberProfile,
+  MyActivity,
+  MyCourse,
   RosterEntry,
   SearchResult,
   TripReportDetail,
@@ -437,4 +439,130 @@ export function parseMemberProfile($: CheerioAPI, url: string): MemberProfile {
   });
 
   return profile;
+}
+
+/**
+ * Parse a human-readable date like "Sat, Feb 7, 2026" to "2026-02-07".
+ * Returns null if parsing fails.
+ */
+function parseHumanDate(dateStr: string): string | null {
+  const cleaned = dateStr.replace(/\s+/g, " ").trim();
+  if (!cleaned) return null;
+  const parsed = new Date(cleaned);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/** Extract uid slug from the last path segment of a URL. */
+function uidFromUrl(url: string): string {
+  const match = url.match(/\/([^/]+)\/?$/);
+  return match ? match[1] : "";
+}
+
+/** Shape of activity items in the MyActivities data-props JSON. */
+interface ActivityItemJson {
+  href?: string;
+  title?: string;
+  category?: string;
+  start?: string;
+  leader?: { name?: string };
+  is_leader?: boolean;
+  position?: string;
+  status?: string;
+}
+
+/** Shape of course items in the MyCourses data-props JSON. */
+interface CourseItemJson {
+  href?: string;
+  title?: string;
+  dates?: string;
+  start?: string;
+  position?: string;
+  status?: string;
+}
+
+/**
+ * Parse the end date from the courses HTML date range.
+ * Format: "Mon,&nbsp;Jan&nbsp;19,&nbsp;2026&nbsp;-<br>Fri,&nbsp;Oct&nbsp;16,&nbsp;2026"
+ */
+function parseCourseDateEnd(datesHtml: string): string | null {
+  if (!datesHtml) return null;
+  const parts = datesHtml.split(/<br\s*\/?>/);
+  if (parts.length < 2) return null;
+  const cleaned = parts[parts.length - 1]
+    .replace(/&nbsp;/g, " ")
+    .replace(/^\s*-?\s*/, "")
+    .trim();
+  return parseHumanDate(cleaned);
+}
+
+/**
+ * Parse the member-activities page by extracting JSON from data-props.
+ * The page embeds activity data in a .pat-react[data-component="MyActivities"] element.
+ */
+export function parseMemberActivities($: CheerioAPI): MyActivity[] {
+  const propsStr = $(".pat-react[data-component='MyActivities']").attr("data-props");
+  if (!propsStr) return [];
+
+  let upcoming: ActivityItemJson[];
+  try {
+    const props = JSON.parse(propsStr) as { upcoming?: ActivityItemJson[] };
+    if (!Array.isArray(props.upcoming)) return [];
+    upcoming = props.upcoming;
+  } catch {
+    return [];
+  }
+
+  return upcoming.map((item) => {
+    const itemHref = item.href || "";
+    const position = item.position || "";
+    return {
+      uid: uidFromUrl(itemHref),
+      title: item.title || "",
+      url: itemHref,
+      category: item.category || null,
+      activity_type: null,
+      start_date: item.start || null,
+      leader: item.leader?.name || null,
+      is_leader: item.is_leader === true || /leader|instructor/i.test(position),
+      position: position || null,
+      status: item.status || null,
+      result: null,
+      difficulty: null,
+      leader_rating: null,
+    };
+  });
+}
+
+/**
+ * Parse the member-courses page by extracting JSON from data-props.
+ * The page embeds course data in a .pat-react[data-component="MyCourses"] element.
+ */
+export function parseMemberCourses($: CheerioAPI): MyCourse[] {
+  const propsStr = $(".pat-react[data-component='MyCourses']").attr("data-props");
+  if (!propsStr) return [];
+
+  let items: CourseItemJson[];
+  try {
+    const props = JSON.parse(propsStr) as {
+      upcoming?: CourseItemJson[];
+      history?: CourseItemJson[];
+    };
+    items = [...(props.upcoming || []), ...(props.history || [])];
+  } catch {
+    return [];
+  }
+
+  return items.map((item) => ({
+    title: item.title || "",
+    url: item.href || "",
+    enrolled_date: item.start ? item.start.substring(0, 10) : null,
+    good_through: parseCourseDateEnd(item.dates || ""),
+    role: item.position || null,
+    status: item.status || null,
+    result: null,
+  }));
 }
