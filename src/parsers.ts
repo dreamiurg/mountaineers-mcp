@@ -162,8 +162,8 @@ export function parseActivityDetail($: CheerioAPI, url: string): ActivityDetail 
     }
     // Or from an explicit link
     const leaderLink = leaderContact.find("a[href*='/members/']").first();
-    if (leaderLink.length) {
-      const leaderHref = leaderLink.attr("href")!;
+    const leaderHref = leaderLink.attr("href");
+    if (leaderHref) {
       detail.leader_url = leaderHref.startsWith("http") ? leaderHref : `${BASE_URL}${leaderHref}`;
     }
   }
@@ -342,12 +342,13 @@ export function parseRoster($: CheerioAPI): RosterEntry[] {
     const roleEl = $el.find(".roster-position");
     const avatarEl = $el.find("img");
 
+    const linkHref = link.attr("href");
     entries.push({
       name: nameEl.text().trim() || "Unknown",
-      profile_url: link.attr("href")
-        ? link.attr("href")!.startsWith("http")
-          ? link.attr("href")!
-          : `${BASE_URL}${link.attr("href")!}`
+      profile_url: linkHref
+        ? linkHref.startsWith("http")
+          ? linkHref
+          : `${BASE_URL}${linkHref}`
         : null,
       role: roleEl.text().trim() || null,
       avatar: avatarEl.attr("src") || null,

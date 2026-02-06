@@ -89,18 +89,20 @@ export async function getMyActivities(
 
   // Client-side filtering
   if (input.category) {
-    activities = activities.filter(
-      (a) => a.category?.toLowerCase() === input.category!.toLowerCase(),
-    );
+    const category = input.category;
+    activities = activities.filter((a) => a.category?.toLowerCase() === category.toLowerCase());
   }
   if (input.result) {
-    activities = activities.filter((a) => a.result?.toLowerCase() === input.result!.toLowerCase());
+    const result = input.result;
+    activities = activities.filter((a) => a.result?.toLowerCase() === result.toLowerCase());
   }
   if (input.date_from) {
-    activities = activities.filter((a) => a.start_date && a.start_date >= input.date_from!);
+    const dateFrom = input.date_from;
+    activities = activities.filter((a) => a.start_date && a.start_date >= dateFrom);
   }
   if (input.date_to) {
-    activities = activities.filter((a) => a.start_date && a.start_date <= input.date_to!);
+    const dateTo = input.date_to;
+    activities = activities.filter((a) => a.start_date && a.start_date <= dateTo);
   }
 
   // Apply limit (default 20, 0 = all)
