@@ -4,22 +4,10 @@ import type { MyActivity } from "../types.js";
 import { whoami } from "./whoami.js";
 
 export const getMyActivitiesSchema = z.object({
-  category: z
-    .string()
-    .optional()
-    .describe("Filter by category: 'trip' or 'course'"),
-  result: z
-    .string()
-    .optional()
-    .describe("Filter by result: 'Successful', 'Canceled', etc."),
-  date_from: z
-    .string()
-    .optional()
-    .describe("Filter activities from this date (YYYY-MM-DD)"),
-  date_to: z
-    .string()
-    .optional()
-    .describe("Filter activities to this date (YYYY-MM-DD)"),
+  category: z.string().optional().describe("Filter by category: 'trip' or 'course'"),
+  result: z.string().optional().describe("Filter by result: 'Successful', 'Canceled', etc."),
+  date_from: z.string().optional().describe("Filter activities from this date (YYYY-MM-DD)"),
+  date_to: z.string().optional().describe("Filter activities to this date (YYYY-MM-DD)"),
   limit: z
     .number()
     .optional()
@@ -52,6 +40,7 @@ interface RawActivityRecord {
   leader_rating?: string;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: field normalization with union types
 function normalizeActivity(raw: RawActivityRecord): MyActivity {
   const leaderName =
     typeof raw.leader === "object" && raw.leader
@@ -79,13 +68,13 @@ function normalizeActivity(raw: RawActivityRecord): MyActivity {
 
 export async function getMyActivities(
   client: MountaineersClient,
-  input: GetMyActivitiesInput
+  input: GetMyActivitiesInput,
 ): Promise<MyActivity[]> {
   const me = await whoami(client);
 
   const rawData = await client.fetchJson<RawActivityRecord[]>(
     `/members/${me.slug}/member-activity-history.json`,
-    { authenticated: true }
+    { authenticated: true },
   );
 
   let activities = rawData.map(normalizeActivity);
@@ -100,24 +89,20 @@ export async function getMyActivities(
 
   // Client-side filtering
   if (input.category) {
-    activities = activities.filter(
-      (a) => a.category?.toLowerCase() === input.category!.toLowerCase()
-    );
+    const category = input.category;
+    activities = activities.filter((a) => a.category?.toLowerCase() === category.toLowerCase());
   }
   if (input.result) {
-    activities = activities.filter(
-      (a) => a.result?.toLowerCase() === input.result!.toLowerCase()
-    );
+    const result = input.result;
+    activities = activities.filter((a) => a.result?.toLowerCase() === result.toLowerCase());
   }
   if (input.date_from) {
-    activities = activities.filter(
-      (a) => a.start_date && a.start_date >= input.date_from!
-    );
+    const dateFrom = input.date_from;
+    activities = activities.filter((a) => a.start_date && a.start_date >= dateFrom);
   }
   if (input.date_to) {
-    activities = activities.filter(
-      (a) => a.start_date && a.start_date <= input.date_to!
-    );
+    const dateTo = input.date_to;
+    activities = activities.filter((a) => a.start_date && a.start_date <= dateTo);
   }
 
   // Apply limit (default 20, 0 = all)

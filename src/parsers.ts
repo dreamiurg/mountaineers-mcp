@@ -1,13 +1,13 @@
 import type { CheerioAPI } from "cheerio";
 import type {
-  ActivitySummary,
   ActivityDetail,
+  ActivitySummary,
   CourseSummary,
-  TripReportSummary,
-  TripReportDetail,
   MemberProfile,
   RosterEntry,
   SearchResult,
+  TripReportDetail,
+  TripReportSummary,
 } from "./types.js";
 
 const BASE_URL = "https://www.mountaineers.org";
@@ -18,19 +18,13 @@ function text(el: ReturnType<CheerioAPI>, selector?: string): string | null {
   return t || null;
 }
 
-function href(
-  el: ReturnType<CheerioAPI>,
-  selector: string
-): string | null {
+function href(el: ReturnType<CheerioAPI>, selector: string): string | null {
   const raw = el.find(selector).attr("href");
   if (!raw) return null;
   return raw.startsWith("http") ? raw : `${BASE_URL}${raw}`;
 }
 
-function textWithoutLabels(
-  el: ReturnType<CheerioAPI>,
-  selector: string
-): string | null {
+function textWithoutLabels(el: ReturnType<CheerioAPI>, selector: string): string | null {
   const target = el.find(selector);
   if (!target.length) return null;
   const clone = target.clone();
@@ -40,17 +34,12 @@ function textWithoutLabels(
 }
 
 function parseResultCount($: CheerioAPI): number {
-  const countText = $("#faceted-result-count, .faceted-result-count")
-    .text()
-    .trim();
+  const countText = $("#faceted-result-count, .faceted-result-count").text().trim();
   const match = countText.match(/(\d[\d,]*)/);
   return match ? parseInt(match[1].replace(/,/g, ""), 10) : 0;
 }
 
-export function parseActivityResults(
-  $: CheerioAPI,
-  page: number
-): SearchResult<ActivitySummary> {
+export function parseActivityResults($: CheerioAPI, page: number): SearchResult<ActivitySummary> {
   const totalCount = parseResultCount($);
   const items: ActivitySummary[] = [];
 
@@ -79,14 +68,10 @@ export function parseActivityResults(
   };
 }
 
-export function parseActivityDetail(
-  $: CheerioAPI,
-  url: string
-): ActivityDetail {
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: HTML parser with many label-matching branches
+export function parseActivityDetail($: CheerioAPI, url: string): ActivityDetail {
   const detail: ActivityDetail = {
-    title:
-      $("h1.documentFirstHeading").text().trim() ||
-      $("h1").first().text().trim(),
+    title: $("h1.documentFirstHeading").text().trim() || $("h1").first().text().trim(),
     url,
     type: $("h2.kicker").text().trim() || null,
     date: null,
@@ -112,6 +97,7 @@ export function parseActivityDetail(
 
   // Parse metadata from ul.details li elements
   // Fields use either <label> or <strong> as the field name prefix
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: label-matching dispatch
   $(".program-core ul.details li, ul.details li").each((_i, el) => {
     const $el = $(el);
     const labelEl = $el.find("label, strong").first();
@@ -134,22 +120,18 @@ export function parseActivityDetail(
     // Also check for link text (e.g. committee links)
     const linkText = $el.find("a").first().text().trim();
 
-    if (label.includes("committee"))
-      detail.committee = linkText || value;
+    if (label.includes("committee")) detail.committee = linkText || value;
     else if (label.includes("activity type")) detail.activity_type = value;
     else if (label.includes("audience")) detail.audience = value;
     else if (label.includes("difficulty")) detail.difficulty = value;
     else if (label.includes("leader rating")) {
       /* skip - not in our model */
-    } else if (label.includes("mileage") || label.includes("distance"))
-      detail.mileage = value;
+    } else if (label.includes("mileage") || label.includes("distance")) detail.mileage = value;
     else if (label.includes("elevation gain")) detail.elevation_gain = value;
     else if (label.includes("availability") && !label.includes("assistant"))
       detail.availability = value;
-    else if (label.includes("registration open"))
-      detail.registration_open = value;
-    else if (label.includes("registration close"))
-      detail.registration_close = value;
+    else if (label.includes("registration open")) detail.registration_open = value;
+    else if (label.includes("registration close")) detail.registration_close = value;
     else if (label.includes("branch")) detail.branch = value;
     else if (label.includes("prerequisite")) detail.prerequisites = value;
   });
@@ -180,11 +162,9 @@ export function parseActivityDetail(
     }
     // Or from an explicit link
     const leaderLink = leaderContact.find("a[href*='/members/']").first();
-    if (leaderLink.length) {
-      const leaderHref = leaderLink.attr("href")!;
-      detail.leader_url = leaderHref.startsWith("http")
-        ? leaderHref
-        : `${BASE_URL}${leaderHref}`;
+    const leaderHref = leaderLink.attr("href");
+    if (leaderHref) {
+      detail.leader_url = leaderHref.startsWith("http") ? leaderHref : `${BASE_URL}${leaderHref}`;
     }
   }
 
@@ -198,8 +178,7 @@ export function parseActivityDetail(
 
     if (sectionLabel.includes("leader") && sectionLabel.includes("note"))
       detail.leader_notes = content;
-    else if (sectionLabel.includes("meeting"))
-      detail.meeting_place = content;
+    else if (sectionLabel.includes("meeting")) detail.meeting_place = content;
   });
 
   // Tabs content - normalize excessive whitespace from HTML indentation
@@ -215,19 +194,14 @@ export function parseActivityDetail(
       .replace(/\n{3,}/g, "\n\n")
       .trim();
 
-    if (tabTitle.includes("route") || tabTitle.includes("place"))
-      detail.route_place = tabContent;
-    else if (tabTitle.includes("equipment"))
-      detail.required_equipment = tabContent;
+    if (tabTitle.includes("route") || tabTitle.includes("place")) detail.route_place = tabContent;
+    else if (tabTitle.includes("equipment")) detail.required_equipment = tabContent;
   });
 
   return detail;
 }
 
-export function parseCourseResults(
-  $: CheerioAPI,
-  page: number
-): SearchResult<CourseSummary> {
+export function parseCourseResults($: CheerioAPI, page: number): SearchResult<CourseSummary> {
   const totalCount = parseResultCount($);
   const items: CourseSummary[] = [];
 
@@ -256,7 +230,7 @@ export function parseCourseResults(
 
 export function parseTripReportResults(
   $: CheerioAPI,
-  page: number
+  page: number,
 ): SearchResult<TripReportSummary> {
   const totalCount = parseResultCount($);
   const items: TripReportSummary[] = [];
@@ -298,14 +272,9 @@ export function parseTripReportResults(
   };
 }
 
-export function parseTripReportDetail(
-  $: CheerioAPI,
-  url: string
-): TripReportDetail {
+export function parseTripReportDetail($: CheerioAPI, url: string): TripReportDetail {
   const detail: TripReportDetail = {
-    title:
-      $("h1.documentFirstHeading").text().trim() ||
-      $("h1").first().text().trim(),
+    title: $("h1.documentFirstHeading").text().trim() || $("h1").first().text().trim(),
     url,
     date: null,
     author: null,
@@ -320,22 +289,31 @@ export function parseTripReportDetail(
   const authorEl = $(".tripreport-metadata span.author a.name");
   if (authorEl.length) {
     // Text content includes img alt text, so get only direct text nodes
-    detail.author = authorEl.contents().filter(function () {
-      return this.type === "text";
-    }).text().trim() || authorEl.text().trim();
+    detail.author =
+      authorEl
+        .contents()
+        .filter(function () {
+          return this.type === "text";
+        })
+        .text()
+        .trim() || authorEl.text().trim();
   }
 
   // Publish date from header metadata
   detail.date = $(".tripreport-metadata .pubdate").text().trim() || null;
 
   // Details from ul.details li > label
+  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: label-matching dispatch
   $(".program-core ul.details li").each((_i, el) => {
     const $el = $(el);
     const labelEl = $el.find("label").first();
-    const label = labelEl.text().trim().toLowerCase().replace(/:?\s*$/, "");
+    const label = labelEl
+      .text()
+      .trim()
+      .toLowerCase()
+      .replace(/:?\s*$/, "");
 
-    const value =
-      $el.clone().children("label").remove().end().text().trim() || null;
+    const value = $el.clone().children("label").remove().end().text().trim() || null;
 
     if (label.includes("date") && !detail.date) detail.date = value;
     else if (label.includes("route") || label.includes("place")) {
@@ -364,12 +342,13 @@ export function parseRoster($: CheerioAPI): RosterEntry[] {
     const roleEl = $el.find(".roster-position");
     const avatarEl = $el.find("img");
 
+    const linkHref = link.attr("href");
     entries.push({
       name: nameEl.text().trim() || "Unknown",
-      profile_url: link.attr("href")
-        ? link.attr("href")!.startsWith("http")
-          ? link.attr("href")!
-          : `${BASE_URL}${link.attr("href")!}`
+      profile_url: linkHref
+        ? linkHref.startsWith("http")
+          ? linkHref
+          : `${BASE_URL}${linkHref}`
         : null,
       role: roleEl.text().trim() || null,
       avatar: avatarEl.attr("src") || null,
@@ -379,13 +358,9 @@ export function parseRoster($: CheerioAPI): RosterEntry[] {
   return entries;
 }
 
-export function parseMemberProfile(
-  $: CheerioAPI,
-  url: string
-): MemberProfile {
+export function parseMemberProfile($: CheerioAPI, url: string): MemberProfile {
   // Name: use documentFirstHeading, skip generic "Profile" h1, fallback to title tag
-  let name =
-    $("h1.documentFirstHeading").text().trim() || "";
+  let name = $("h1.documentFirstHeading").text().trim() || "";
   if (!name || name.toLowerCase() === "profile") {
     // Try second h1
     const h1s = $("h1");

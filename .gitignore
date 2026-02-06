@@ -1,8 +1,10 @@
 node_modules/
 dist/
+coverage/
 .mcp.json
 .omc/
 .playwright-mcp/
 
-# bv (beads viewer) local config and caches
+# Beads issue tracker (local)
+.beads/
 .bv/

@@ -1,13 +1,26 @@
 import { z } from "zod";
 import type { MountaineersClient } from "../client.js";
 import { parseActivityResults } from "../parsers.js";
-import type { SearchResult, ActivitySummary } from "../types.js";
+import type { ActivitySummary, SearchResult } from "../types.js";
 
 export const searchActivitiesSchema = z.object({
   query: z.string().optional().describe("Search text"),
-  activity_type: z.string().optional().describe("Activity type filter, e.g. 'Day Hiking', 'Climbing', 'Sea Kayaking', 'Backpacking', 'Scrambling', 'Snowshoeing', 'Cross-Country Skiing', 'Alpine Skiing', 'Trail Running', 'Mountain Biking', 'Sailing', 'Stewardship'"),
-  branch: z.string().optional().describe("Branch filter, e.g. 'Seattle', 'Tacoma', 'Olympia', 'Bellingham', 'Everett', 'Foothills', 'Kitsap'"),
-  difficulty: z.string().optional().describe("Difficulty filter: 'Casual', 'Easy', 'Moderate', 'Moderate+', 'Challenging'"),
+  activity_type: z
+    .string()
+    .optional()
+    .describe(
+      "Activity type filter, e.g. 'Day Hiking', 'Climbing', 'Sea Kayaking', 'Backpacking', 'Scrambling', 'Snowshoeing', 'Cross-Country Skiing', 'Alpine Skiing', 'Trail Running', 'Mountain Biking', 'Sailing', 'Stewardship'",
+    ),
+  branch: z
+    .string()
+    .optional()
+    .describe(
+      "Branch filter, e.g. 'Seattle', 'Tacoma', 'Olympia', 'Bellingham', 'Everett', 'Foothills', 'Kitsap'",
+    ),
+  difficulty: z
+    .string()
+    .optional()
+    .describe("Difficulty filter: 'Casual', 'Easy', 'Moderate', 'Moderate+', 'Challenging'"),
   audience: z.string().optional().describe("Audience filter: 'Adults', 'Families', 'Youth'"),
   day_of_week: z.string().optional().describe("Day of week: 'Monday' through 'Sunday'"),
   date_start: z.string().optional().describe("Start date filter (YYYY-MM-DD)"),
@@ -21,7 +34,7 @@ export type SearchActivitiesInput = z.infer<typeof searchActivitiesSchema>;
 
 export async function searchActivities(
   client: MountaineersClient,
-  input: SearchActivitiesInput
+  input: SearchActivitiesInput,
 ): Promise<SearchResult<ActivitySummary>> {
   const params = new URLSearchParams();
 

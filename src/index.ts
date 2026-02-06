@@ -1,40 +1,16 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { MountaineersClient } from "./client.js";
-import {
-  searchActivitiesSchema,
-  searchActivities,
-} from "./tools/search-activities.js";
-import {
-  searchCoursesSchema,
-  searchCourses,
-} from "./tools/search-courses.js";
-import {
-  searchTripReportsSchema,
-  searchTripReports,
-} from "./tools/search-trip-reports.js";
-import { getActivitySchema, getActivity } from "./tools/get-activity.js";
-import {
-  getTripReportSchema,
-  getTripReport,
-} from "./tools/get-trip-report.js";
+import { getActivity, getActivitySchema } from "./tools/get-activity.js";
+import { getActivityRoster, getActivityRosterSchema } from "./tools/get-activity-roster.js";
+import { getMemberProfile, getMemberProfileSchema } from "./tools/get-member-profile.js";
+import { getMyActivities, getMyActivitiesSchema } from "./tools/get-my-activities.js";
+import { getMyCourses, getMyCoursesSchema } from "./tools/get-my-courses.js";
+import { getTripReport, getTripReportSchema } from "./tools/get-trip-report.js";
+import { searchActivities, searchActivitiesSchema } from "./tools/search-activities.js";
+import { searchCourses, searchCoursesSchema } from "./tools/search-courses.js";
+import { searchTripReports, searchTripReportsSchema } from "./tools/search-trip-reports.js";
 import { whoami } from "./tools/whoami.js";
-import {
-  getMyActivitiesSchema,
-  getMyActivities,
-} from "./tools/get-my-activities.js";
-import {
-  getMyCoursesSchema,
-  getMyCourses,
-} from "./tools/get-my-courses.js";
-import {
-  getMemberProfileSchema,
-  getMemberProfile,
-} from "./tools/get-member-profile.js";
-import {
-  getActivityRosterSchema,
-  getActivityRoster,
-} from "./tools/get-activity-roster.js";
 
 const client = new MountaineersClient();
 
@@ -63,7 +39,7 @@ server.tool(
         isError: true,
       };
     }
-  }
+  },
 );
 
 server.tool(
@@ -80,7 +56,7 @@ server.tool(
         isError: true,
       };
     }
-  }
+  },
 );
 
 server.tool(
@@ -97,7 +73,7 @@ server.tool(
         isError: true,
       };
     }
-  }
+  },
 );
 
 server.tool(
@@ -114,7 +90,7 @@ server.tool(
         isError: true,
       };
     }
-  }
+  },
 );
 
 server.tool(
@@ -131,7 +107,7 @@ server.tool(
         isError: true,
       };
     }
-  }
+  },
 );
 
 // Authenticated tools
@@ -150,7 +126,7 @@ server.tool(
         isError: true,
       };
     }
-  }
+  },
 );
 
 server.tool(
@@ -167,7 +143,7 @@ server.tool(
         isError: true,
       };
     }
-  }
+  },
 );
 
 server.tool(
@@ -184,7 +160,7 @@ server.tool(
         isError: true,
       };
     }
-  }
+  },
 );
 
 server.tool(
@@ -201,7 +177,7 @@ server.tool(
         isError: true,
       };
     }
-  }
+  },
 );
 
 server.tool(
@@ -218,7 +194,7 @@ server.tool(
         isError: true,
       };
     }
-  }
+  },
 );
 
 // Start server

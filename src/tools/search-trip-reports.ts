@@ -13,7 +13,7 @@ export type SearchTripReportsInput = z.infer<typeof searchTripReportsSchema>;
 
 export async function searchTripReports(
   client: MountaineersClient,
-  input: SearchTripReportsInput
+  input: SearchTripReportsInput,
 ): Promise<SearchResult<TripReportSummary>> {
   const params = new URLSearchParams();
 
@@ -23,9 +23,6 @@ export async function searchTripReports(
   const page = input.page ?? 0;
   if (page > 0) params.append("b_start", String(page * 20));
 
-  const $ = await client.fetchFacetedQuery(
-    "/activities/trip-reports",
-    params
-  );
+  const $ = await client.fetchFacetedQuery("/activities/trip-reports", params);
   return parseTripReportResults($, page);
 }

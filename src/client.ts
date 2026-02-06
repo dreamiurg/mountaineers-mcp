@@ -19,9 +19,7 @@ export class MountaineersClient {
     const now = Date.now();
     const elapsed = now - this.lastRequestTime;
     if (elapsed < RATE_LIMIT_MS) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, RATE_LIMIT_MS - elapsed)
-      );
+      await new Promise((resolve) => setTimeout(resolve, RATE_LIMIT_MS - elapsed));
     }
     this.lastRequestTime = Date.now();
   }
@@ -37,7 +35,7 @@ export class MountaineersClient {
       if (!nameValue) continue;
       const name = nameValue.split("=")[0];
       // Replace existing cookie with same name or add new
-      this.cookies = this.cookies.filter((c) => !c.startsWith(name + "="));
+      this.cookies = this.cookies.filter((c) => !c.startsWith(`${name}=`));
       this.cookies.push(nameValue);
     }
   }
@@ -45,7 +43,7 @@ export class MountaineersClient {
   async login(): Promise<void> {
     if (!this.username || !this.password) {
       throw new Error(
-        "MOUNTAINEERS_USERNAME and MOUNTAINEERS_PASSWORD environment variables required"
+        "MOUNTAINEERS_USERNAME and MOUNTAINEERS_PASSWORD environment variables required",
       );
     }
 
@@ -60,9 +58,7 @@ export class MountaineersClient {
     const loginHtml = await loginPageRes.text();
 
     // Extract CSRF _authenticator token
-    const authMatch = loginHtml.match(
-      /name="_authenticator"\s+value="([^"]*)"/
-    );
+    const authMatch = loginHtml.match(/name="_authenticator"\s+value="([^"]*)"/);
 
     await this.rateLimit();
 
@@ -98,7 +94,7 @@ export class MountaineersClient {
             "User-Agent": "MountaineersMCP/0.1.0",
           },
           redirect: "manual",
-        }
+        },
       );
       this.captureCookies(followRes);
     }
@@ -117,7 +113,7 @@ export class MountaineersClient {
     options: {
       headers?: Record<string, string>;
       authenticated?: boolean;
-    } = {}
+    } = {},
   ): Promise<Response> {
     if (options.authenticated) {
       await this.ensureLoggedIn();
@@ -132,7 +128,7 @@ export class MountaineersClient {
     };
 
     if (this.cookies.length > 0) {
-      headers["Cookie"] = this.buildCookieHeader();
+      headers.Cookie = this.buildCookieHeader();
     }
 
     const response = await fetch(fullUrl, { headers, redirect: "follow" });
@@ -142,7 +138,7 @@ export class MountaineersClient {
 
   async fetchHtml(
     url: string,
-    options: { authenticated?: boolean } = {}
+    options: { authenticated?: boolean } = {},
   ): Promise<cheerio.CheerioAPI> {
     const response = await this.fetchRaw(url, {
       headers: { Accept: "text/html" },
@@ -152,10 +148,7 @@ export class MountaineersClient {
     return cheerio.load(html);
   }
 
-  async fetchFacetedQuery(
-    basePath: string,
-    params: URLSearchParams
-  ): Promise<cheerio.CheerioAPI> {
+  async fetchFacetedQuery(basePath: string, params: URLSearchParams): Promise<cheerio.CheerioAPI> {
     const url = `${basePath}/@@faceted_query?${params.toString()}`;
     const response = await this.fetchRaw(url, {
       headers: {
@@ -167,10 +160,7 @@ export class MountaineersClient {
     return cheerio.load(html);
   }
 
-  async fetchJson<T = unknown>(
-    url: string,
-    options: { authenticated?: boolean } = {}
-  ): Promise<T> {
+  async fetchJson<T = unknown>(url: string, options: { authenticated?: boolean } = {}): Promise<T> {
     const response = await this.fetchRaw(url, {
       headers: {
         Accept: "application/json",
