@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.mcp.json
+.omc/
+.playwright-mcp/
+
+# bv (beads viewer) local config and caches
+.bv/
