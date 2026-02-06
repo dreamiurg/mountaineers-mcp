@@ -20,6 +20,10 @@ export const getMyActivitiesSchema = z.object({
     .string()
     .optional()
     .describe("Filter activities to this date (YYYY-MM-DD)"),
+  limit: z
+    .number()
+    .optional()
+    .describe("Max number of results to return (default 20, use 0 for all)"),
 });
 
 export type GetMyActivitiesInput = z.infer<typeof getMyActivitiesSchema>;
@@ -86,6 +90,14 @@ export async function getMyActivities(
 
   let activities = rawData.map(normalizeActivity);
 
+  // Sort by date descending (most recent first)
+  activities.sort((a, b) => {
+    if (!a.start_date && !b.start_date) return 0;
+    if (!a.start_date) return 1;
+    if (!b.start_date) return -1;
+    return b.start_date.localeCompare(a.start_date);
+  });
+
   // Client-side filtering
   if (input.category) {
     activities = activities.filter(
@@ -106,6 +118,12 @@ export async function getMyActivities(
     activities = activities.filter(
       (a) => a.start_date && a.start_date <= input.date_to!
     );
+  }
+
+  // Apply limit (default 20, 0 = all)
+  const limit = input.limit ?? 20;
+  if (limit > 0) {
+    activities = activities.slice(0, limit);
   }
 
   return activities;

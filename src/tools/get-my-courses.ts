@@ -16,6 +16,10 @@ export const getMyCoursesSchema = z.object({
     .string()
     .optional()
     .describe("Filter courses to this date (YYYY-MM-DD)"),
+  limit: z
+    .number()
+    .optional()
+    .describe("Max number of results to return (default 20, use 0 for all)"),
 });
 
 export type GetMyCoursesInput = z.infer<typeof getMyCoursesSchema>;
@@ -29,5 +33,6 @@ export async function getMyCourses(
     result: input.result,
     date_from: input.date_from,
     date_to: input.date_to,
+    limit: input.limit,
   });
 }
