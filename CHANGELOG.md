@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.1.1...v1.2.0) (2026-02-06)
+
+
+### Features
+
+* add MCPB packaging for one-click Claude Desktop install ([#15](https://github.com/dreamiurg/mountaineers-mcp/issues/15)) ([46552aa](https://github.com/dreamiurg/mountaineers-mcp/commit/46552aa7e6eb9efe7402b5a2543784a447c48aff))
+
 ## [1.1.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.1.0...v1.1.1) (2026-02-06)
 
 
