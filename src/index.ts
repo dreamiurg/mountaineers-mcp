@@ -132,7 +132,7 @@ server.tool(
 
 server.tool(
   "get_my_activities",
-  "Get the logged-in user's activity history. Supports filtering by category (trip/course), result, and date range.",
+  "Get the logged-in user's registered activities (upcoming and past). Supports filtering by category, result, and date range.",
   getMyActivitiesSchema.shape,
   async (input) => {
     try {
@@ -149,7 +149,7 @@ server.tool(
 
 server.tool(
   "get_my_courses",
-  "Get the logged-in user's course history. Supports filtering by result and date range.",
+  "Get the logged-in user's course enrollments (current and past). Supports filtering by result and date range.",
   getMyCoursesSchema.shape,
   async (input) => {
     try {
