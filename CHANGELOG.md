@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.1.0...v1.1.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* use Node 24 for npm publish (OIDC requires npm &gt;= 11.5) ([#13](https://github.com/dreamiurg/mountaineers-mcp/issues/13)) ([8d81d78](https://github.com/dreamiurg/mountaineers-mcp/commit/8d81d783da07e78787987fb48ad36413c6336a41))
+
 ## [1.1.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.0.1...v1.1.0) (2026-02-06)
 
 
