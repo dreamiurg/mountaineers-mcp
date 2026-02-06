@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.0.0...v1.0.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* normalize repository URL in package.json ([#8](https://github.com/dreamiurg/mountaineers-mcp/issues/8)) ([7c958f8](https://github.com/dreamiurg/mountaineers-mcp/commit/7c958f8275f2b7751fff99bf2ee00ca6424049df))
+
 ## 1.0.0 (2026-02-06)
 
 
