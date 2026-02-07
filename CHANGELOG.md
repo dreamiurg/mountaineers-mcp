@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.5.0...v1.6.0) (2026-02-07)
+
+
+### Features
+
+* improve tool filters, pagination, and data completeness ([#32](https://github.com/dreamiurg/mountaineers-mcp/issues/32)) ([57ff2fa](https://github.com/dreamiurg/mountaineers-mcp/commit/57ff2fa716cb462932af8175ff4051802194dae2))
+
 ## [1.5.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.4.0...v1.5.0) (2026-02-07)
 
 
