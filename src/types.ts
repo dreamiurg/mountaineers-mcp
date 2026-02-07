@@ -32,6 +32,7 @@ export interface ActivityDetail {
   branch: string | null;
   leader: string | null;
   leader_url: string | null;
+  leaders: { name: string; url: string | null; role: string | null }[];
   leader_notes: string | null;
   meeting_place: string | null;
   route_place: string | null;

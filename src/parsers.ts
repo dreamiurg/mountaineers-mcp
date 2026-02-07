@@ -73,7 +73,6 @@ export function parseActivityResults($: CheerioAPI, page: number): SearchResult<
   };
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: HTML parser with many label-matching branches
 export function parseActivityDetail($: CheerioAPI, url: string): ActivityDetail {
   const detail: ActivityDetail = {
     title: $("h1.documentFirstHeading").text().trim() || $("h1").first().text().trim(),
@@ -93,6 +92,7 @@ export function parseActivityDetail($: CheerioAPI, url: string): ActivityDetail 
     branch: null,
     leader: null,
     leader_url: null,
+    leaders: [],
     leader_notes: null,
     meeting_place: null,
     route_place: null,
@@ -141,36 +141,50 @@ export function parseActivityDetail($: CheerioAPI, url: string): ActivityDetail 
     else if (label.includes("prerequisite")) detail.prerequisites = value;
   });
 
-  // Leader info from .leaders .roster-contact
-  const leaderContact = $(".leaders .roster-contact").first();
-  if (leaderContact.length) {
-    // Try img alt attribute first (most reliable)
-    const imgEl = leaderContact.find("img").first();
-    if (imgEl.length) {
-      detail.leader = imgEl.attr("alt")?.trim() || null;
+  // Parse end_date from date range (e.g. "Sat, Feb 7, 2026 - Sun, Feb 15, 2026")
+  if (detail.date?.includes(" - ")) {
+    const parts = detail.date.split(" - ");
+    if (parts.length >= 2) {
+      detail.end_date = parseHumanDate(parts[parts.length - 1]);
     }
-    // Fallback: find div that isn't .roster-position
-    if (!detail.leader) {
-      leaderContact.find("div").each((_i, el) => {
-        const $div = $(el);
-        if (!$div.hasClass("roster-position") && !detail.leader) {
+  }
+
+  // Leader info from .leaders .roster-contact (extract ALL leaders)
+  $(".leaders .roster-contact").each((_i, el) => {
+    const $el = $(el);
+    // Name: try img alt first, then non-position div text
+    const imgEl = $el.find("img").first();
+    let name = imgEl.attr("alt")?.trim() || "";
+    if (!name) {
+      $el.find("div").each((_j, div) => {
+        const $div = $(div);
+        if (!$div.hasClass("roster-position") && !name) {
           const t = $div.text().trim();
-          if (t) detail.leader = t;
+          if (t) name = t;
         }
       });
     }
-    // URL from img src which contains /members/slug/
-    const imgSrc = imgEl?.attr("src") || "";
-    const memberMatch = imgSrc.match(/\/members\/([^/]+)/);
-    if (memberMatch) {
-      detail.leader_url = `${BASE_URL}/members/${memberMatch[1]}`;
-    }
-    // Or from an explicit link
-    const leaderLink = leaderContact.find("a[href*='/members/']").first();
+    // URL from explicit link or img src
+    let leaderUrl: string | null = null;
+    const leaderLink = $el.find("a[href*='/members/']").first();
     const leaderHref = leaderLink.attr("href");
     if (leaderHref) {
-      detail.leader_url = leaderHref.startsWith("http") ? leaderHref : `${BASE_URL}${leaderHref}`;
+      leaderUrl = leaderHref.startsWith("http") ? leaderHref : `${BASE_URL}${leaderHref}`;
+    } else {
+      const imgSrc = imgEl?.attr("src") || "";
+      const memberMatch = imgSrc.match(/\/members\/([^/]+)/);
+      if (memberMatch) {
+        leaderUrl = `${BASE_URL}/members/${memberMatch[1]}`;
+      }
     }
+    const role = $el.find(".roster-position").text().trim() || null;
+    if (name) detail.leaders.push({ name, url: leaderUrl, role });
+  });
+
+  // Backward compat: populate leader/leader_url from first entry
+  if (detail.leaders.length > 0) {
+    detail.leader = detail.leaders[0].name;
+    detail.leader_url = detail.leaders[0].url;
   }
 
   // Text content sections from .content-text div > label
