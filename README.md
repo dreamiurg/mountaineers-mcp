@@ -178,6 +178,14 @@ npm test             # Run tests
 npm run ci           # Full CI: check + coverage + build
 ```
 
+## Other Mountaineering & Outdoors Tools
+
+I climb, scramble, and hike a lot, and I keep building tools around it. If this one's useful to you, the others might be too:
+
+- **[mountaineers-assistant](https://github.com/dreamiurg/mountaineers-assistant)** -- Chrome extension that syncs your mountaineers.org activity history and shows you stats, trends, and climbing partners you can't see on the site.
+- **[peakbagger-cli](https://github.com/dreamiurg/peakbagger-cli)** -- Command-line access to PeakBagger.com. Search peaks, check elevation and prominence, browse ascent stats. Outputs JSON for piping into other tools.
+- **[claude-mountaineering-skills](https://github.com/dreamiurg/claude-mountaineering-skills)** -- Claude Code plugin that generates route beta reports by pulling conditions, forecasts, and trip reports from multiple mountaineering sites.
+
 ## License
 
 MIT
