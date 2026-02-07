@@ -14,10 +14,15 @@ This lets AI assistants like Claude and ChatGPT search and browse [mountaineers.
 - *"What activities am I signed up for?"*
 - *"What badges have I earned?"*
 
-The AI reads the Mountaineers website, understands the results, and gives you a conversational answer -- no manual searching required.
+The AI reads the Mountaineers website, understands the results, and gives you a conversational answer -- no manual searching required. Read the full story: [I Built an MCP Server for Mountaineers.org](https://dreamiurg.net/2026/02/06/mountaineers-mcp-server.html).
 
 <p align="center">
-  <img src="assets/demo.gif" alt="Mountaineers MCP Server Demo">
+  <img src="assets/demo.gif" alt="Mountaineers MCP Server Demo — Claude Code CLI">
+</p>
+
+<p align="center">
+  <img src="assets/claude-desktop-courses.png" width="49%" alt="Course search in Claude Desktop">
+  <img src="assets/claude-desktop-backpacking.png" width="49%" alt="Backpacking trip details in Claude Desktop">
 </p>
 
 ## What can it do?
