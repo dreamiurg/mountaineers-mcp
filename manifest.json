@@ -58,7 +58,17 @@
     { "name": "get_my_courses", "description": "Get your course enrollments" },
     { "name": "get_member_profile", "description": "Get a member's profile information" },
     { "name": "get_activity_roster", "description": "Get the participant roster for an activity" },
-    { "name": "search_routes", "description": "Search routes and places on mountaineers.org" }
+    { "name": "search_routes", "description": "Search routes and places on mountaineers.org" },
+    {
+      "name": "get_route",
+      "description": "Get detailed route/place info including difficulty, elevation, and directions"
+    },
+    {
+      "name": "get_course",
+      "description": "Get detailed course info including schedule, pricing, and leaders"
+    },
+    { "name": "get_activity_history", "description": "Get your completed activity history" },
+    { "name": "get_my_badges", "description": "Get your earned badges and certifications" }
   ],
   "keywords": ["mountaineers", "hiking", "mountaineering", "mcp"]
 }

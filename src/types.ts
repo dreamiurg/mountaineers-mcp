@@ -122,6 +122,41 @@ export interface MyCourse {
   result: string | null;
 }
 
+export interface RouteDetail {
+  title: string;
+  url: string;
+  description: string | null;
+  suitable_activities: string | null;
+  seasons: string | null;
+  difficulty: string | null;
+  length: string | null;
+  elevation_gain: string | null;
+  high_point: string | null;
+  land_manager: string | null;
+  parking_permit: string | null;
+  recommended_party_size: string | null;
+  maximum_party_size: string | null;
+  directions: string | null;
+  recommended_maps: string[];
+  related_routes: string[];
+}
+
+export interface CourseDetail {
+  title: string;
+  url: string;
+  category: string | null;
+  description: string | null;
+  dates: string | null;
+  committee: string | null;
+  committee_url: string | null;
+  member_price: string | null;
+  guest_price: string | null;
+  availability: string | null;
+  capacity: string | null;
+  leaders: { name: string; role: string | null }[];
+  badges_earned: string[];
+}
+
 export interface RouteSummary {
   title: string;
   url: string;
