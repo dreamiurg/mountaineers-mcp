@@ -273,7 +273,7 @@ server.tool(
 
 server.tool(
   "get_activity_roster",
-  "Get the participant roster for a specific activity. Requires authentication.",
+  "Get the participant roster for a specific activity by URL or slug. Requires authentication.",
   getActivityRosterSchema.shape,
   async (input) => {
     try {
