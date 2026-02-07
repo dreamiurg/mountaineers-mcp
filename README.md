@@ -20,11 +20,6 @@ The AI reads the Mountaineers website, understands the results, and gives you a 
   <img src="assets/demo.gif" alt="Mountaineers MCP Server Demo — Claude Code CLI">
 </p>
 
-<p align="center">
-  <img src="assets/claude-desktop-courses.png" width="49%" alt="Course search in Claude Desktop">
-  <img src="assets/claude-desktop-backpacking.png" width="49%" alt="Backpacking trip details in Claude Desktop">
-</p>
-
 ## What can it do?
 
 **Search the website** (no login needed):
@@ -51,6 +46,16 @@ Follow the instructions for your AI app below.
 2. Open Claude Desktop → **Settings → Extensions → Install Extension**
 3. Select the downloaded `.mcpb` file
 4. Enter your mountaineers.org credentials if you want account access (optional)
+
+<p align="center">
+  <img src="assets/claude-desktop-courses.png" width="75%" alt="Course search in Claude Desktop">
+</p>
+
+<p align="center">
+  <img src="assets/claude-desktop-backpacking.png" width="75%" alt="Backpacking trip details in Claude Desktop">
+</p>
+
+
 
 That's it -- no Node.js install required.
 
