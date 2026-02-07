@@ -10,7 +10,9 @@ This lets AI assistants like Claude and ChatGPT search and browse [mountaineers.
 - *"Find me a beginner-friendly day hike near Seattle this weekend"*
 - *"What scrambles are available in August?"*
 - *"Show me trip reports for Mount Pilchuck"*
+- *"What's the elevation gain on the Mount Si trail?"*
 - *"What activities am I signed up for?"*
+- *"What badges have I earned?"*
 
 The AI reads the Mountaineers website, understands the results, and gives you a conversational answer -- no manual searching required.
 
@@ -20,11 +22,14 @@ The AI reads the Mountaineers website, understands the results, and gives you a 
 - Search activities by type, branch, difficulty, date, and more
 - Search courses, clinics, and seminars
 - Browse trip reports
-- Get full details for any activity or trip report
+- Search routes and places
+- Get full details for any activity, trip report, route, or course
 
 **Access your account** (with your login):
 - See your upcoming and past activities
-- See your course history
+- See your completed activity history
+- See your course enrollments
+- View your earned badges and certifications
 - View member profiles and activity rosters
 
 ## Setup
@@ -141,16 +146,21 @@ codex mcp add mountaineers -- npx -y mountaineers-mcp
 | `search_activities` | Search activities with filters (type, branch, difficulty, date, day of week) |
 | `search_courses` | Search courses, clinics, and seminars |
 | `search_trip_reports` | Search trip reports by text and activity type |
+| `search_routes` | Search routes and places with filters (activity type, difficulty, climbing category) |
 | `get_activity` | Get full activity details (leader notes, route, equipment) |
 | `get_trip_report` | Get trip report details (conditions, route info) |
+| `get_route` | Get route details (difficulty, elevation, directions, maps, related routes) |
+| `get_course` | Get course details (schedule, pricing, leaders, badges earned) |
 
 ### Authenticated (login required)
 
 | Tool | Description |
 |------|-------------|
 | `whoami` | Get your name, profile URL, and member slug |
-| `get_my_activities` | Your activity history with filtering by date and result |
-| `get_my_courses` | Your course history with filtering |
+| `get_my_activities` | Your registered activities (upcoming) with filtering |
+| `get_my_courses` | Your course enrollments with filtering |
+| `get_activity_history` | Your completed activity history with filtering by result, type, and date |
+| `get_my_badges` | Your earned badges and certifications with dates |
 | `get_member_profile` | View a member's profile, badges, and committees |
 | `get_activity_roster` | See who's signed up for an activity |
 
