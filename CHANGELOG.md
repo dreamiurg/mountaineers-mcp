@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.3.0...v1.4.0) (2026-02-07)
+
+
+### Features
+
+* add get_route, get_course, get_activity_history, and get_my_badges tools ([#26](https://github.com/dreamiurg/mountaineers-mcp/issues/26)) ([015f5ea](https://github.com/dreamiurg/mountaineers-mcp/commit/015f5ea90e6b3e7ff0f0734a38c8a7b6eb031b72))
+
 ## [1.3.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.2.1...v1.3.0) (2026-02-06)
 
 
