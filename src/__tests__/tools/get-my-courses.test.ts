@@ -184,6 +184,56 @@ describe("getMyCourses", () => {
   });
 
   describe("filtering", () => {
+    it("filters by status", async () => {
+      const html = makeMemberCoursesHtml([
+        makeCourseItem(
+          "Active Course",
+          "https://www.mountaineers.org/courses/active",
+          "Mon,&nbsp;Jan&nbsp;19,&nbsp;2026&nbsp;-<br>Fri,&nbsp;Oct&nbsp;16,&nbsp;2026",
+          "2026-01-19T10:00:00",
+          "Student",
+          "Registered",
+        ),
+        makeCourseItem(
+          "Waitlisted Course",
+          "https://www.mountaineers.org/courses/waitlisted",
+          "Mon,&nbsp;Feb&nbsp;1,&nbsp;2026&nbsp;-<br>Fri,&nbsp;Nov&nbsp;1,&nbsp;2026",
+          "2026-02-01T10:00:00",
+          "Student",
+          "Waitlisted",
+        ),
+      ]);
+      const client = createMockClient("jane-doe", html);
+      const result = await getMyCourses(client, { status: "Registered", limit: 0 });
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe("Active Course");
+    });
+
+    it("filters by role", async () => {
+      const html = makeMemberCoursesHtml([
+        makeCourseItem(
+          "Student Course",
+          "https://www.mountaineers.org/courses/student",
+          "Mon,&nbsp;Jan&nbsp;19,&nbsp;2026&nbsp;-<br>Fri,&nbsp;Oct&nbsp;16,&nbsp;2026",
+          "2026-01-19T10:00:00",
+          "Student",
+          "Registered",
+        ),
+        makeCourseItem(
+          "Instructor Course",
+          "https://www.mountaineers.org/courses/instructor",
+          "Mon,&nbsp;Feb&nbsp;1,&nbsp;2026&nbsp;-<br>Fri,&nbsp;Nov&nbsp;1,&nbsp;2026",
+          "2026-02-01T10:00:00",
+          "Instructor",
+          "Registered",
+        ),
+      ]);
+      const client = createMockClient("jane-doe", html);
+      const result = await getMyCourses(client, { role: "Instructor", limit: 0 });
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe("Instructor Course");
+    });
+
     it("filters by date_from", async () => {
       const html = makeMemberCoursesHtml([
         makeCourseItem(

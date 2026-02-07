@@ -5,6 +5,8 @@ import type { MyCourse } from "../types.js";
 import { whoami } from "./whoami.js";
 
 export const getMyCoursesSchema = z.object({
+  status: z.string().optional().describe("Filter by status: 'Registered', 'Waitlisted', etc."),
+  role: z.string().optional().describe("Filter by role: 'Student', 'Instructor', etc."),
   result: z.string().optional().describe("Filter by result: 'Successful', 'Canceled', etc."),
   date_from: z.string().optional().describe("Filter courses enrolled from this date (YYYY-MM-DD)"),
   date_to: z.string().optional().describe("Filter courses enrolled to this date (YYYY-MM-DD)"),
@@ -37,6 +39,14 @@ export async function getMyCourses(
   });
 
   // Client-side filtering
+  if (input.status) {
+    const status = input.status;
+    courses = courses.filter((c) => c.status?.toLowerCase() === status.toLowerCase());
+  }
+  if (input.role) {
+    const role = input.role;
+    courses = courses.filter((c) => c.role?.toLowerCase() === role.toLowerCase());
+  }
   if (input.result) {
     const result = input.result;
     courses = courses.filter((c) => c.result?.toLowerCase() === result.toLowerCase());

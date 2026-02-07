@@ -188,7 +188,7 @@ server.tool(
 
 server.tool(
   "get_my_activities",
-  "Get the logged-in user's registered activities (upcoming and past). Supports filtering by category, result, and date range.",
+  "Get the logged-in user's registered activities (upcoming and past). Supports filtering by category, status, result, and date range.",
   getMyActivitiesSchema.shape,
   async (input) => {
     try {
@@ -205,7 +205,7 @@ server.tool(
 
 server.tool(
   "get_my_courses",
-  "Get the logged-in user's course enrollments (current and past). Supports filtering by result and date range.",
+  "Get the logged-in user's course enrollments (current and past). Supports filtering by status, role, result, and date range.",
   getMyCoursesSchema.shape,
   async (input) => {
     try {
@@ -239,7 +239,7 @@ server.tool(
 
 server.tool(
   "get_my_badges",
-  "Get the logged-in user's earned badges and certifications, including earned and expiration dates.",
+  "Get the logged-in user's earned badges and certifications. Supports filtering by name and active status.",
   getMyBadgesSchema.shape,
   async (input) => {
     try {

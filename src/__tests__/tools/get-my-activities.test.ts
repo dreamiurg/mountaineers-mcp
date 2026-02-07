@@ -322,6 +322,50 @@ describe("getMyActivities", () => {
       return createMockClient("jane-doe", html);
     }
 
+    it("filters by status", async () => {
+      const activities = [
+        makeActivity(
+          "2026-02-07",
+          "Registered Activity",
+          "https://www.mountaineers.org/activities/activities/a",
+          "L",
+          "https://www.mountaineers.org/members/l",
+          "Participant",
+          "Registered",
+        ),
+        makeActivity(
+          "2026-03-10",
+          "Waitlisted Activity",
+          "https://www.mountaineers.org/activities/activities/b",
+          "L",
+          "https://www.mountaineers.org/members/l",
+          "Participant",
+          "Waitlisted",
+        ),
+      ];
+      const client = createMockClient("jane-doe", makeMemberActivitiesHtml(activities));
+      const result = await getMyActivities(client, { status: "Waitlisted", limit: 0 });
+      expect(result).toHaveLength(1);
+      expect(result[0].title).toBe("Waitlisted Activity");
+    });
+
+    it("filters by status case-insensitively", async () => {
+      const activities = [
+        makeActivity(
+          "2026-02-07",
+          "Activity",
+          "https://www.mountaineers.org/activities/activities/a",
+          "L",
+          "https://www.mountaineers.org/members/l",
+          "Participant",
+          "Registered",
+        ),
+      ];
+      const client = createMockClient("jane-doe", makeMemberActivitiesHtml(activities));
+      const result = await getMyActivities(client, { status: "registered", limit: 0 });
+      expect(result).toHaveLength(1);
+    });
+
     it("filters by date_from", async () => {
       const client = makeTestClient();
       const result = await getMyActivities(client, { date_from: "2026-03-01", limit: 0 });

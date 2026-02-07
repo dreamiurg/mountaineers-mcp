@@ -6,6 +6,7 @@ import { whoami } from "./whoami.js";
 
 export const getMyActivitiesSchema = z.object({
   category: z.string().optional().describe("Filter by category: 'trip' or 'course'"),
+  status: z.string().optional().describe("Filter by status: 'Registered', 'Waitlisted', etc."),
   result: z.string().optional().describe("Filter by result: 'Successful', 'Canceled', etc."),
   date_from: z.string().optional().describe("Filter activities from this date (YYYY-MM-DD)"),
   date_to: z.string().optional().describe("Filter activities to this date (YYYY-MM-DD)"),
@@ -41,6 +42,10 @@ export async function getMyActivities(
   if (input.category) {
     const category = input.category;
     activities = activities.filter((a) => a.category?.toLowerCase() === category.toLowerCase());
+  }
+  if (input.status) {
+    const status = input.status;
+    activities = activities.filter((a) => a.status?.toLowerCase() === status.toLowerCase());
   }
   if (input.result) {
     const result = input.result;
