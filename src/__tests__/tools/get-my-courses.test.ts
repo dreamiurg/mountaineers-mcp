@@ -84,15 +84,15 @@ describe("getMyCourses", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyCourses(client, { limit: 0 });
-      expect(result).toHaveLength(1);
-      expect(result[0].title).toBe("Intermediate Glacier Climbing - Everett - 2026");
-      expect(result[0].url).toBe(
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].title).toBe("Intermediate Glacier Climbing - Everett - 2026");
+      expect(result.items[0].url).toBe(
         "https://www.mountaineers.org/courses/intermediate-glacier-climbing-everett-2026",
       );
-      expect(result[0].enrolled_date).toBe("2026-01-19");
-      expect(result[0].good_through).toBe("2026-10-16");
-      expect(result[0].role).toBe("Student");
-      expect(result[0].status).toBe("Registered");
+      expect(result.items[0].enrolled_date).toBe("2026-01-19");
+      expect(result.items[0].good_through).toBe("2026-10-16");
+      expect(result.items[0].role).toBe("Student");
+      expect(result.items[0].status).toBe("Registered");
     });
 
     it("parses multiple courses from upcoming and history", async () => {
@@ -120,7 +120,8 @@ describe("getMyCourses", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyCourses(client, { limit: 0 });
-      expect(result).toHaveLength(2);
+      expect(result.items).toHaveLength(2);
+      expect(result.total_count).toBe(2);
     });
 
     it("extracts enrolled_date from ISO start field", async () => {
@@ -137,22 +138,24 @@ describe("getMyCourses", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyCourses(client, { limit: 0 });
-      expect(result[0].enrolled_date).toBe("2024-01-15");
+      expect(result.items[0].enrolled_date).toBe("2024-01-15");
     });
 
-    it("returns empty array when no pat-react element exists", async () => {
+    it("returns empty items when no pat-react element exists", async () => {
       const html = "<html><body><p>No courses</p></body></html>";
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyCourses(client, { limit: 0 });
-      expect(result).toEqual([]);
+      expect(result.items).toEqual([]);
+      expect(result.total_count).toBe(0);
     });
 
-    it("returns empty array for empty upcoming and history", async () => {
+    it("returns empty items for empty upcoming and history", async () => {
       const client = createMockClient();
 
       const result = await getMyCourses(client, { limit: 0 });
-      expect(result).toEqual([]);
+      expect(result.items).toEqual([]);
+      expect(result.total_count).toBe(0);
     });
   });
 
@@ -179,11 +182,61 @@ describe("getMyCourses", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyCourses(client, { limit: 0 });
-      expect(result.map((c) => c.title)).toEqual(["Course A", "Course B"]);
+      expect(result.items.map((c) => c.title)).toEqual(["Course A", "Course B"]);
     });
   });
 
   describe("filtering", () => {
+    it("filters by status", async () => {
+      const html = makeMemberCoursesHtml([
+        makeCourseItem(
+          "Active Course",
+          "https://www.mountaineers.org/courses/active",
+          "Mon,&nbsp;Jan&nbsp;19,&nbsp;2026&nbsp;-<br>Fri,&nbsp;Oct&nbsp;16,&nbsp;2026",
+          "2026-01-19T10:00:00",
+          "Student",
+          "Registered",
+        ),
+        makeCourseItem(
+          "Waitlisted Course",
+          "https://www.mountaineers.org/courses/waitlisted",
+          "Mon,&nbsp;Feb&nbsp;1,&nbsp;2026&nbsp;-<br>Fri,&nbsp;Nov&nbsp;1,&nbsp;2026",
+          "2026-02-01T10:00:00",
+          "Student",
+          "Waitlisted",
+        ),
+      ]);
+      const client = createMockClient("jane-doe", html);
+      const result = await getMyCourses(client, { status: "Registered", limit: 0 });
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].title).toBe("Active Course");
+    });
+
+    it("filters by role", async () => {
+      const html = makeMemberCoursesHtml([
+        makeCourseItem(
+          "Student Course",
+          "https://www.mountaineers.org/courses/student",
+          "Mon,&nbsp;Jan&nbsp;19,&nbsp;2026&nbsp;-<br>Fri,&nbsp;Oct&nbsp;16,&nbsp;2026",
+          "2026-01-19T10:00:00",
+          "Student",
+          "Registered",
+        ),
+        makeCourseItem(
+          "Instructor Course",
+          "https://www.mountaineers.org/courses/instructor",
+          "Mon,&nbsp;Feb&nbsp;1,&nbsp;2026&nbsp;-<br>Fri,&nbsp;Nov&nbsp;1,&nbsp;2026",
+          "2026-02-01T10:00:00",
+          "Instructor",
+          "Registered",
+        ),
+      ]);
+      const client = createMockClient("jane-doe", html);
+      const result = await getMyCourses(client, { role: "Instructor", limit: 0 });
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].title).toBe("Instructor Course");
+    });
+
     it("filters by date_from", async () => {
       const html = makeMemberCoursesHtml([
         makeCourseItem(
@@ -206,8 +259,8 @@ describe("getMyCourses", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyCourses(client, { date_from: "2025-01-01", limit: 0 });
-      expect(result).toHaveLength(1);
-      expect(result[0].title).toBe("Late Course");
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].title).toBe("Late Course");
     });
 
     it("filters by date_to", async () => {
@@ -232,13 +285,13 @@ describe("getMyCourses", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyCourses(client, { date_to: "2025-01-01", limit: 0 });
-      expect(result).toHaveLength(1);
-      expect(result[0].title).toBe("Early Course");
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].title).toBe("Early Course");
     });
   });
 
-  describe("limit", () => {
-    it("defaults to 20 results", async () => {
+  describe("limit and total_count", () => {
+    it("defaults to 20 results with total_count reflecting all", async () => {
       const courses = Array.from({ length: 25 }, (_, i) =>
         makeCourseItem(
           `Course ${i}`,
@@ -252,7 +305,9 @@ describe("getMyCourses", () => {
       const client = createMockClient("jane-doe", makeMemberCoursesHtml(courses));
 
       const result = await getMyCourses(client, {});
-      expect(result).toHaveLength(20);
+      expect(result.items).toHaveLength(20);
+      expect(result.total_count).toBe(25);
+      expect(result.limit).toBe(20);
     });
 
     it("returns all results when limit=0", async () => {
@@ -269,7 +324,9 @@ describe("getMyCourses", () => {
       const client = createMockClient("jane-doe", makeMemberCoursesHtml(courses));
 
       const result = await getMyCourses(client, { limit: 0 });
-      expect(result).toHaveLength(25);
+      expect(result.items).toHaveLength(25);
+      expect(result.total_count).toBe(25);
+      expect(result.limit).toBe(0);
     });
   });
 

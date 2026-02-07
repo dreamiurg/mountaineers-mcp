@@ -1,10 +1,12 @@
 import { z } from "zod";
 import type { MountaineersClient } from "../client.js";
 import { parseMemberCourses } from "../parsers.js";
-import type { MyCourse } from "../types.js";
+import type { ListResult, MyCourse } from "../types.js";
 import { whoami } from "./whoami.js";
 
 export const getMyCoursesSchema = z.object({
+  status: z.string().optional().describe("Filter by status: 'Registered', 'Waitlisted', etc."),
+  role: z.string().optional().describe("Filter by role: 'Student', 'Instructor', etc."),
   result: z.string().optional().describe("Filter by result: 'Successful', 'Canceled', etc."),
   date_from: z.string().optional().describe("Filter courses enrolled from this date (YYYY-MM-DD)"),
   date_to: z.string().optional().describe("Filter courses enrolled to this date (YYYY-MM-DD)"),
@@ -19,7 +21,7 @@ export type GetMyCoursesInput = z.infer<typeof getMyCoursesSchema>;
 export async function getMyCourses(
   client: MountaineersClient,
   input: GetMyCoursesInput,
-): Promise<MyCourse[]> {
+): Promise<ListResult<MyCourse>> {
   const me = await whoami(client);
 
   const $ = await client.fetchHtml(`/members/${me.slug}/member-courses`, {
@@ -37,6 +39,14 @@ export async function getMyCourses(
   });
 
   // Client-side filtering
+  if (input.status) {
+    const status = input.status;
+    courses = courses.filter((c) => c.status?.toLowerCase() === status.toLowerCase());
+  }
+  if (input.role) {
+    const role = input.role;
+    courses = courses.filter((c) => c.role?.toLowerCase() === role.toLowerCase());
+  }
   if (input.result) {
     const result = input.result;
     courses = courses.filter((c) => c.result?.toLowerCase() === result.toLowerCase());
@@ -51,10 +61,11 @@ export async function getMyCourses(
   }
 
   // Apply limit (default 20, 0 = all)
+  const totalCount = courses.length;
   const limit = input.limit ?? 20;
   if (limit > 0) {
     courses = courses.slice(0, limit);
   }
 
-  return courses;
+  return { total_count: totalCount, items: courses, limit };
 }

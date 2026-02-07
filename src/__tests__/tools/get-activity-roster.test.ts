@@ -24,20 +24,27 @@ describe("getActivityRoster", () => {
     client = createMockClient();
   });
 
-  it("calls fetchRosterTab with the activity URL", async () => {
+  it("calls fetchRosterTab with the full URL when given a URL", async () => {
     const activityUrl = "https://www.mountaineers.org/activities/activities/day-hike-1";
-    await getActivityRoster(client, { activity_url: activityUrl });
+    await getActivityRoster(client, { url: activityUrl });
     expect(client.fetchRosterTab).toHaveBeenCalledWith(activityUrl);
   });
 
-  it("returns empty array when no roster entries exist", async () => {
-    const result = await getActivityRoster(client, {
-      activity_url: "https://www.mountaineers.org/activities/activities/empty-hike",
-    });
-    expect(result).toEqual([]);
+  it("constructs URL from slug when input is not a full URL", async () => {
+    await getActivityRoster(client, { url: "day-hike-rock-candy-mountain-11" });
+    expect(client.fetchRosterTab).toHaveBeenCalledWith(
+      "https://www.mountaineers.org/activities/activities/day-hike-rock-candy-mountain-11",
+    );
   });
 
-  it("returns parsed roster entries", async () => {
+  it("returns ListResult with empty items when no roster entries exist", async () => {
+    const result = await getActivityRoster(client, {
+      url: "https://www.mountaineers.org/activities/activities/empty-hike",
+    });
+    expect(result).toEqual({ total_count: 0, items: [], limit: 0 });
+  });
+
+  it("returns ListResult with parsed roster entries", async () => {
     const rosterHtml = `
       <div class="roster-contact">
         <a class="contact-modal" href="/members/leader-1">
@@ -55,11 +62,13 @@ describe("getActivityRoster", () => {
     (client.fetchRosterTab as ReturnType<typeof vi.fn>).mockResolvedValue(cheerio.load(rosterHtml));
 
     const result = await getActivityRoster(client, {
-      activity_url: "https://www.mountaineers.org/activities/activities/hike-1",
+      url: "https://www.mountaineers.org/activities/activities/hike-1",
     });
-    expect(result).toHaveLength(2);
-    expect(result[0].name).toBe("Leader One");
-    expect(result[0].role).toBe("Leader");
-    expect(result[1].name).toBe("Participant One");
+    expect(result.total_count).toBe(2);
+    expect(result.limit).toBe(0);
+    expect(result.items).toHaveLength(2);
+    expect(result.items[0].name).toBe("Leader One");
+    expect(result.items[0].role).toBe("Leader");
+    expect(result.items[1].name).toBe("Participant One");
   });
 });

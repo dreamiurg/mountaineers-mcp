@@ -1,11 +1,12 @@
 import { z } from "zod";
 import type { MountaineersClient } from "../client.js";
 import { parseMemberActivities } from "../parsers.js";
-import type { MyActivity } from "../types.js";
+import type { ListResult, MyActivity } from "../types.js";
 import { whoami } from "./whoami.js";
 
 export const getMyActivitiesSchema = z.object({
   category: z.string().optional().describe("Filter by category: 'trip' or 'course'"),
+  status: z.string().optional().describe("Filter by status: 'Registered', 'Waitlisted', etc."),
   result: z.string().optional().describe("Filter by result: 'Successful', 'Canceled', etc."),
   date_from: z.string().optional().describe("Filter activities from this date (YYYY-MM-DD)"),
   date_to: z.string().optional().describe("Filter activities to this date (YYYY-MM-DD)"),
@@ -20,7 +21,7 @@ export type GetMyActivitiesInput = z.infer<typeof getMyActivitiesSchema>;
 export async function getMyActivities(
   client: MountaineersClient,
   input: GetMyActivitiesInput,
-): Promise<MyActivity[]> {
+): Promise<ListResult<MyActivity>> {
   const me = await whoami(client);
 
   const $ = await client.fetchHtml(`/members/${me.slug}/member-activities`, {
@@ -42,6 +43,10 @@ export async function getMyActivities(
     const category = input.category;
     activities = activities.filter((a) => a.category?.toLowerCase() === category.toLowerCase());
   }
+  if (input.status) {
+    const status = input.status;
+    activities = activities.filter((a) => a.status?.toLowerCase() === status.toLowerCase());
+  }
   if (input.result) {
     const result = input.result;
     activities = activities.filter((a) => a.result?.toLowerCase() === result.toLowerCase());
@@ -56,10 +61,11 @@ export async function getMyActivities(
   }
 
   // Apply limit (default 20, 0 = all)
+  const totalCount = activities.length;
   const limit = input.limit ?? 20;
   if (limit > 0) {
     activities = activities.slice(0, limit);
   }
 
-  return activities;
+  return { total_count: totalCount, items: activities, limit };
 }

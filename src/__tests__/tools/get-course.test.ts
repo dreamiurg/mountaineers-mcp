@@ -92,6 +92,33 @@ describe("getCourse", () => {
     expect(result.dates).toBe("Fri, Feb 6, 2026 - Sun, Feb 15, 2026");
   });
 
+  describe("structured dates", () => {
+    it("extracts start_date and end_date from date range", async () => {
+      const client = createMockClient(
+        makeCourseHtml({ dates: "Fri, Feb 6, 2026 - Sun, Feb 15, 2026" }),
+      );
+      const result = await getCourse(client, { url: "test" });
+      expect(result.start_date).toBe("2026-02-06");
+      expect(result.end_date).toBe("2026-02-15");
+    });
+
+    it("extracts only start_date for single date", async () => {
+      const client = createMockClient(makeCourseHtml({ dates: "Sat, Mar 1, 2026" }));
+      const result = await getCourse(client, { url: "test" });
+      expect(result.start_date).toBe("2026-03-01");
+      expect(result.end_date).toBeNull();
+    });
+
+    it("leaves both null when no dates present", async () => {
+      const html =
+        '<html><body><h1 class="documentFirstHeading">No Dates Course</h1></body></html>';
+      const client = createMockClient(html);
+      const result = await getCourse(client, { url: "test" });
+      expect(result.start_date).toBeNull();
+      expect(result.end_date).toBeNull();
+    });
+  });
+
   it("parses committee with link", async () => {
     const client = createMockClient(
       makeCourseHtml({

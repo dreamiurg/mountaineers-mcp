@@ -67,19 +67,60 @@ describe("getMyBadges", () => {
     ]);
 
     const result = await getMyBadges(client, {});
-    expect(result).toHaveLength(2);
-    expect(result[0].name).toBe("Basic Alpine Climbing");
-    expect(result[0].earned).toBe("2020-06-15");
-    expect(result[0].expires).toBe("2025-06-15");
-    expect(result[1].name).toBe("Wilderness Navigation");
-    expect(result[1].earned).toBe("2021-03-01");
-    expect(result[1].expires).toBeNull();
+    expect(result.items).toHaveLength(2);
+    expect(result.total_count).toBe(2);
+    expect(result.limit).toBe(0);
+    expect(result.items[0].name).toBe("Basic Alpine Climbing");
+    expect(result.items[0].earned).toBe("2020-06-15");
+    expect(result.items[0].expires).toBe("2025-06-15");
+    expect(result.items[1].name).toBe("Wilderness Navigation");
+    expect(result.items[1].earned).toBe("2021-03-01");
+    expect(result.items[1].expires).toBeNull();
   });
 
-  it("returns empty array when no badges", async () => {
+  it("returns empty items when no badges", async () => {
     const client = createMockClient();
     const result = await getMyBadges(client, {});
-    expect(result).toEqual([]);
+    expect(result.items).toEqual([]);
+    expect(result.total_count).toBe(0);
+  });
+
+  describe("filtering", () => {
+    it("filters by active_only (excludes expired badges)", async () => {
+      const client = createMockClient("jane-doe", [
+        { name: "Active Badge", earned: "2024-01-01", expires: "2099-12-31" },
+        { name: "Expired Badge", earned: "2020-01-01", expires: "2020-12-31" },
+        { name: "No Expiry Badge", earned: "2021-01-01" },
+      ]);
+      const result = await getMyBadges(client, { active_only: true });
+      expect(result.items).toHaveLength(2);
+      expect(result.items.map((b) => b.name)).toEqual(["Active Badge", "No Expiry Badge"]);
+    });
+
+    it("filters by name (case-insensitive substring)", async () => {
+      const client = createMockClient("jane-doe", [
+        { name: "Basic Alpine Climbing", earned: "2020-06-15" },
+        { name: "Wilderness Navigation", earned: "2021-03-01" },
+        { name: "Alpine Scrambling", earned: "2022-01-01" },
+      ]);
+      const result = await getMyBadges(client, { name: "alpine" });
+      expect(result.items).toHaveLength(2);
+      expect(result.items.map((b) => b.name)).toEqual([
+        "Basic Alpine Climbing",
+        "Alpine Scrambling",
+      ]);
+    });
+
+    it("combines active_only and name filters", async () => {
+      const client = createMockClient("jane-doe", [
+        { name: "Basic Alpine Climbing", earned: "2020-06-15", expires: "2020-12-31" },
+        { name: "Alpine Scrambling", earned: "2022-01-01", expires: "2099-12-31" },
+        { name: "Wilderness Navigation", earned: "2021-03-01" },
+      ]);
+      const result = await getMyBadges(client, { active_only: true, name: "alpine" });
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].name).toBe("Alpine Scrambling");
+    });
   });
 
   it("calls ensureLoggedIn", async () => {

@@ -87,16 +87,16 @@ describe("getMyActivities", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result).toHaveLength(1);
-      expect(result[0].title).toBe("Field Trips - Mount Si");
-      expect(result[0].url).toBe(
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].title).toBe("Field Trips - Mount Si");
+      expect(result.items[0].url).toBe(
         "https://www.mountaineers.org/activities/activities/field-trips-mount-si",
       );
-      expect(result[0].start_date).toBe("2026-02-07");
-      expect(result[0].leader).toBe("Jill Thornton");
-      expect(result[0].position).toBe("Instructor");
-      expect(result[0].status).toBe("Registered");
-      expect(result[0].is_leader).toBe(true);
+      expect(result.items[0].start_date).toBe("2026-02-07");
+      expect(result.items[0].leader).toBe("Jill Thornton");
+      expect(result.items[0].position).toBe("Instructor");
+      expect(result.items[0].status).toBe("Registered");
+      expect(result.items[0].is_leader).toBe(true);
     });
 
     it("extracts uid from URL slug", async () => {
@@ -114,7 +114,7 @@ describe("getMyActivities", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result[0].uid).toBe("test-hike-123");
+      expect(result.items[0].uid).toBe("test-hike-123");
     });
 
     it("detects is_leader from Instructor role", async () => {
@@ -132,7 +132,7 @@ describe("getMyActivities", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result[0].is_leader).toBe(true);
+      expect(result.items[0].is_leader).toBe(true);
     });
 
     it("detects is_leader from Primary Leader role", async () => {
@@ -150,7 +150,7 @@ describe("getMyActivities", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result[0].is_leader).toBe(true);
+      expect(result.items[0].is_leader).toBe(true);
     });
 
     it("sets is_leader false for Participant role", async () => {
@@ -168,7 +168,7 @@ describe("getMyActivities", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result[0].is_leader).toBe(false);
+      expect(result.items[0].is_leader).toBe(false);
     });
 
     it("uses start field directly as start_date", async () => {
@@ -186,22 +186,24 @@ describe("getMyActivities", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result[0].start_date).toBe("2026-05-30");
+      expect(result.items[0].start_date).toBe("2026-05-30");
     });
 
-    it("returns empty array when no pat-react element exists", async () => {
+    it("returns empty items when no pat-react element exists", async () => {
       const html = "<html><body><p>No activities</p></body></html>";
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result).toEqual([]);
+      expect(result.items).toEqual([]);
+      expect(result.total_count).toBe(0);
     });
 
-    it("returns empty array for empty upcoming list", async () => {
+    it("returns empty items for empty upcoming list", async () => {
       const client = createMockClient();
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result).toEqual([]);
+      expect(result.items).toEqual([]);
+      expect(result.total_count).toBe(0);
     });
 
     it("extracts category from activity data", async () => {
@@ -219,7 +221,7 @@ describe("getMyActivities", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result[0].category).toBe("course");
+      expect(result.items[0].category).toBe("course");
     });
   });
 
@@ -257,7 +259,11 @@ describe("getMyActivities", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result.map((a) => a.title)).toEqual(["Feb Activity", "Mar Activity", "Jun Activity"]);
+      expect(result.items.map((a) => a.title)).toEqual([
+        "Feb Activity",
+        "Mar Activity",
+        "Jun Activity",
+      ]);
     });
 
     it("pushes null dates to end", async () => {
@@ -284,7 +290,7 @@ describe("getMyActivities", () => {
       const client = createMockClient("jane-doe", html);
 
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result.map((a) => a.title)).toEqual(["Has date", "No date"]);
+      expect(result.items.map((a) => a.title)).toEqual(["Has date", "No date"]);
     });
   });
 
@@ -322,18 +328,62 @@ describe("getMyActivities", () => {
       return createMockClient("jane-doe", html);
     }
 
+    it("filters by status", async () => {
+      const activities = [
+        makeActivity(
+          "2026-02-07",
+          "Registered Activity",
+          "https://www.mountaineers.org/activities/activities/a",
+          "L",
+          "https://www.mountaineers.org/members/l",
+          "Participant",
+          "Registered",
+        ),
+        makeActivity(
+          "2026-03-10",
+          "Waitlisted Activity",
+          "https://www.mountaineers.org/activities/activities/b",
+          "L",
+          "https://www.mountaineers.org/members/l",
+          "Participant",
+          "Waitlisted",
+        ),
+      ];
+      const client = createMockClient("jane-doe", makeMemberActivitiesHtml(activities));
+      const result = await getMyActivities(client, { status: "Waitlisted", limit: 0 });
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].title).toBe("Waitlisted Activity");
+    });
+
+    it("filters by status case-insensitively", async () => {
+      const activities = [
+        makeActivity(
+          "2026-02-07",
+          "Activity",
+          "https://www.mountaineers.org/activities/activities/a",
+          "L",
+          "https://www.mountaineers.org/members/l",
+          "Participant",
+          "Registered",
+        ),
+      ];
+      const client = createMockClient("jane-doe", makeMemberActivitiesHtml(activities));
+      const result = await getMyActivities(client, { status: "registered", limit: 0 });
+      expect(result.items).toHaveLength(1);
+    });
+
     it("filters by date_from", async () => {
       const client = makeTestClient();
       const result = await getMyActivities(client, { date_from: "2026-03-01", limit: 0 });
-      expect(result).toHaveLength(2);
-      expect(result.map((a) => a.title)).toEqual(["Activity B", "Activity C"]);
+      expect(result.items).toHaveLength(2);
+      expect(result.items.map((a) => a.title)).toEqual(["Activity B", "Activity C"]);
     });
 
     it("filters by date_to", async () => {
       const client = makeTestClient();
       const result = await getMyActivities(client, { date_to: "2026-03-10", limit: 0 });
-      expect(result).toHaveLength(2);
-      expect(result.map((a) => a.title)).toEqual(["Activity A", "Activity B"]);
+      expect(result.items).toHaveLength(2);
+      expect(result.items.map((a) => a.title)).toEqual(["Activity A", "Activity B"]);
     });
 
     it("filters by date range", async () => {
@@ -343,12 +393,12 @@ describe("getMyActivities", () => {
         date_to: "2026-05-01",
         limit: 0,
       });
-      expect(result).toHaveLength(1);
-      expect(result[0].title).toBe("Activity B");
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].title).toBe("Activity B");
     });
   });
 
-  describe("limit", () => {
+  describe("limit and total_count", () => {
     function makeTestClient() {
       const activities = Array.from({ length: 25 }, (_, i) =>
         makeActivity(
@@ -364,22 +414,28 @@ describe("getMyActivities", () => {
       return createMockClient("jane-doe", makeMemberActivitiesHtml(activities));
     }
 
-    it("defaults to 20 results", async () => {
+    it("defaults to 20 results with total_count reflecting all", async () => {
       const client = makeTestClient();
       const result = await getMyActivities(client, {});
-      expect(result).toHaveLength(20);
+      expect(result.items).toHaveLength(20);
+      expect(result.total_count).toBe(25);
+      expect(result.limit).toBe(20);
     });
 
     it("respects custom limit", async () => {
       const client = makeTestClient();
       const result = await getMyActivities(client, { limit: 5 });
-      expect(result).toHaveLength(5);
+      expect(result.items).toHaveLength(5);
+      expect(result.total_count).toBe(25);
+      expect(result.limit).toBe(5);
     });
 
     it("returns all results when limit=0", async () => {
       const client = makeTestClient();
       const result = await getMyActivities(client, { limit: 0 });
-      expect(result).toHaveLength(25);
+      expect(result.items).toHaveLength(25);
+      expect(result.total_count).toBe(25);
+      expect(result.limit).toBe(0);
     });
   });
 
