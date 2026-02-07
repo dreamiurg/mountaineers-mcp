@@ -16,6 +16,10 @@ This lets AI assistants like Claude and ChatGPT search and browse [mountaineers.
 
 The AI reads the Mountaineers website, understands the results, and gives you a conversational answer -- no manual searching required.
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Mountaineers MCP Server Demo">
+</p>
+
 ## What can it do?
 
 **Search the website** (no login needed):
