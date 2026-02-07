@@ -709,6 +709,8 @@ export function parseCourseDetail($: CheerioAPI, url: string): CourseDetail {
     category: $("h2.kicker").text().trim() || null,
     description: $("p.documentDescription").text().trim() || null,
     dates: $("li.course-dates").text().trim() || null,
+    start_date: null,
+    end_date: null,
     committee: null,
     committee_url: null,
     member_price: null,
@@ -718,6 +720,17 @@ export function parseCourseDetail($: CheerioAPI, url: string): CourseDetail {
     leaders: [],
     badges_earned: [],
   };
+
+  // Parse structured dates from raw dates text (e.g. "Fri, Feb 6, 2026 - Sun, Feb 15, 2026")
+  if (detail.dates) {
+    const dateParts = detail.dates.split(" - ");
+    if (dateParts.length >= 2) {
+      detail.start_date = parseHumanDate(dateParts[0]);
+      detail.end_date = parseHumanDate(dateParts[dateParts.length - 1]);
+    } else {
+      detail.start_date = parseHumanDate(detail.dates);
+    }
+  }
 
   // Committee from ul.details li
   const comm = detailValue($, "committee");

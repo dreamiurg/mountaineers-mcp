@@ -148,6 +148,8 @@ export interface CourseDetail {
   category: string | null;
   description: string | null;
   dates: string | null;
+  start_date: string | null;
+  end_date: string | null;
   committee: string | null;
   committee_url: string | null;
   member_price: string | null;
