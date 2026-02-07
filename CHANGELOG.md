@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.6.0...v1.6.1) (2026-02-07)
+
+
+### Bug Fixes
+
+* override tmp to &gt;=0.2.4 to resolve CVE-2025-54798 ([#34](https://github.com/dreamiurg/mountaineers-mcp/issues/34)) ([f47b0f4](https://github.com/dreamiurg/mountaineers-mcp/commit/f47b0f453f4997dfdbe49f8a676fa4647b734c8e))
+
 ## [1.6.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.5.0...v1.6.0) (2026-02-07)
 
 
