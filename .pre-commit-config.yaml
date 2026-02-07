@@ -10,6 +10,7 @@ repos:
         args: [--branch, main]
       - id: check-added-large-files
         args: [--maxkb=500]
+        exclude: ^assets/
       - id: detect-private-key
 
   - repo: https://github.com/gitleaks/gitleaks
