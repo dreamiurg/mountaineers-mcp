@@ -1,7 +1,7 @@
 Output ../assets/demo.gif
 
 Set Shell bash
-Set FontSize 20
+Set FontSize 24
 Set Width 1400
 Set Height 800
 Set Theme "Catppuccin Mocha"
