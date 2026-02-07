@@ -2,11 +2,14 @@ import type { CheerioAPI } from "cheerio";
 import type {
   ActivityDetail,
   ActivitySummary,
+  CourseDetail,
   CourseSummary,
   MemberProfile,
   MyActivity,
   MyCourse,
   RosterEntry,
+  RouteDetail,
+  RouteSummary,
   SearchResult,
   TripReportDetail,
   TripReportSummary,
@@ -456,6 +459,28 @@ function parseHumanDate(dateStr: string): string | null {
   return `${year}-${month}-${day}`;
 }
 
+export function parseRouteResults($: CheerioAPI, page: number): SearchResult<RouteSummary> {
+  const totalCount = parseResultCount($);
+  const items: RouteSummary[] = [];
+
+  $(".result-item").each((_i, el) => {
+    const $el = $(el);
+    items.push({
+      title: text($el, ".result-title a") ?? "",
+      url: href($el, ".result-title a") ?? "",
+      type: text($el, ".result-type"),
+      description: text($el, ".result-summary"),
+    });
+  });
+
+  return {
+    total_count: totalCount,
+    items,
+    page,
+    has_more: (page + 1) * 20 < totalCount,
+  };
+}
+
 /** Extract uid slug from the last path segment of a URL. */
 function uidFromUrl(url: string): string {
   const match = url.match(/\/([^/]+)\/?$/);
@@ -565,4 +590,178 @@ export function parseMemberCourses($: CheerioAPI): MyCourse[] {
     status: item.status || null,
     result: null,
   }));
+}
+
+/**
+ * Extract a detail value from a ul.details li by its label text.
+ * Returns the text after removing the label/strong element, or null.
+ */
+function detailValue(
+  $: CheerioAPI,
+  labelMatch: string,
+): { value: string | null; linkText: string | null; linkHref: string | null } {
+  let value: string | null = null;
+  let linkText: string | null = null;
+  let linkHref: string | null = null;
+
+  $("ul.details li").each((_i, el) => {
+    const $el = $(el);
+    const labelEl = $el.find("label, strong").first();
+    const label = labelEl.text().trim().toLowerCase().replace(/:$/, "");
+    if (!label.includes(labelMatch.toLowerCase())) return;
+
+    value =
+      $el.clone().children("label, strong").remove().end().text().trim().replace(/\s+/g, " ") ||
+      null;
+    const $link = $el.find("a").first();
+    linkText = $link.text().trim() || null;
+    linkHref = $link.attr("href") || null;
+    return false; // break
+  });
+
+  return { value, linkText, linkHref };
+}
+
+export function parseRouteDetail($: CheerioAPI, url: string): RouteDetail {
+  const detail: RouteDetail = {
+    title: $("h1.documentFirstHeading").text().trim() || $("h1").first().text().trim(),
+    url,
+    description: $("p.documentDescription").text().trim() || null,
+    suitable_activities: detailValue($, "suitable activit").value,
+    seasons: detailValue($, "season").value,
+    difficulty: detailValue($, "difficulty").value,
+    length: detailValue($, "length").value,
+    elevation_gain: detailValue($, "elevation gain").value,
+    high_point: detailValue($, "high point").value,
+    land_manager: detailValue($, "land manager").linkText || detailValue($, "land manager").value,
+    parking_permit:
+      detailValue($, "parking permit").linkText || detailValue($, "parking permit").value,
+    recommended_party_size: detailValue($, "recommended party").value,
+    maximum_party_size: detailValue($, "maximum party size").value,
+    directions: null,
+    recommended_maps: [],
+    related_routes: [],
+  };
+
+  // Extract directions: text after "getting there" h2 until next h2
+  let capturing = false;
+  const dirParts: string[] = [];
+  $(".program-core")
+    .children()
+    .each((_i, el) => {
+      const $el = $(el);
+      const tagName = el.type === "tag" ? el.tagName.toLowerCase() : "";
+      if (tagName === "h2" && $el.text().trim().toLowerCase().includes("getting there")) {
+        capturing = true;
+        return;
+      }
+      if (capturing && tagName === "h2") {
+        capturing = false;
+        return false; // break
+      }
+      if (capturing) {
+        const t = $el.text().trim();
+        if (t) dirParts.push(t);
+      }
+    });
+  if (dirParts.length) detail.directions = dirParts.join("\n");
+
+  // Recommended maps from tab content
+  $(".tabs .tab").each((_i, el) => {
+    const $tab = $(el);
+    const tabTitle = $tab.find(".tab-title").text().trim().toLowerCase();
+    if (tabTitle.includes("map")) {
+      $tab.find("li").each((_j, li) => {
+        const mapText = $(li).text().trim();
+        if (mapText) detail.recommended_maps.push(mapText);
+      });
+    }
+    if (tabTitle.includes("title")) {
+      $tab.find("li").each((_j, li) => {
+        const routeText = $(li).text().trim();
+        if (routeText) detail.related_routes.push(routeText);
+      });
+    }
+  });
+
+  return detail;
+}
+
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: HTML parser with many label-matching branches
+export function parseCourseDetail($: CheerioAPI, url: string): CourseDetail {
+  const detail: CourseDetail = {
+    title: $("h1.documentFirstHeading").text().trim() || $("h1").first().text().trim(),
+    url,
+    category: $("h2.kicker").text().trim() || null,
+    description: $("p.documentDescription").text().trim() || null,
+    dates: $("li.course-dates").text().trim() || null,
+    committee: null,
+    committee_url: null,
+    member_price: null,
+    guest_price: null,
+    availability: null,
+    capacity: null,
+    leaders: [],
+    badges_earned: [],
+  };
+
+  // Committee from ul.details li
+  const comm = detailValue($, "committee");
+  detail.committee = comm.linkText || comm.value;
+  if (comm.linkHref) {
+    detail.committee_url = comm.linkHref.startsWith("http")
+      ? comm.linkHref
+      : `${BASE_URL}${comm.linkHref}`;
+  }
+
+  // Pricing from li.course-fees
+  const $fees = $("li.course-fees");
+  if ($fees.length) {
+    const spans = $fees.find("span");
+    if (spans.length >= 1) detail.member_price = $(spans[0]).text().trim() || null;
+    if (spans.length >= 2) detail.guest_price = $(spans[1]).text().trim() || null;
+  }
+
+  // Availability from li.course-availability
+  const $avail = $("li.course-availability");
+  if ($avail.length) {
+    const spans = $avail.find("span");
+    if (spans.length >= 1) detail.availability = $(spans[0]).text().trim() || null;
+    if (spans.length >= 2)
+      detail.capacity =
+        $(spans[spans.length - 1])
+          .text()
+          .trim() || null;
+  }
+
+  // Leaders from div.leaders .roster-contact
+  $(".leaders .roster-contact").each((_i, el) => {
+    const $el = $(el);
+    const imgAlt = $el.find("img").attr("alt")?.trim();
+    let name = imgAlt || "";
+    if (!name) {
+      $el.find("div").each((_j, div) => {
+        const $div = $(div);
+        if (!$div.hasClass("roster-position")) {
+          const t = $div.text().trim();
+          if (t && !name) name = t;
+        }
+      });
+    }
+    const role = $el.find(".roster-position").text().trim() || null;
+    if (name) detail.leaders.push({ name, role });
+  });
+
+  // Badges earned
+  $("h3")
+    .filter((_i, el) => $(el).text().trim().toLowerCase().includes("badges you will earn"))
+    .first()
+    .next("ul")
+    .find("li a")
+    .each((_i, el) => {
+      const badgeName = $(el).text().trim();
+      if (badgeName) detail.badges_earned.push(badgeName);
+    });
+
+  return detail;
 }

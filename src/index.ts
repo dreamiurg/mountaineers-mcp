@@ -3,13 +3,18 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { MountaineersClient } from "./client.js";
 import { getActivity, getActivitySchema } from "./tools/get-activity.js";
+import { getActivityHistory, getActivityHistorySchema } from "./tools/get-activity-history.js";
 import { getActivityRoster, getActivityRosterSchema } from "./tools/get-activity-roster.js";
+import { getCourse, getCourseSchema } from "./tools/get-course.js";
 import { getMemberProfile, getMemberProfileSchema } from "./tools/get-member-profile.js";
 import { getMyActivities, getMyActivitiesSchema } from "./tools/get-my-activities.js";
+import { getMyBadges, getMyBadgesSchema } from "./tools/get-my-badges.js";
 import { getMyCourses, getMyCoursesSchema } from "./tools/get-my-courses.js";
+import { getRoute, getRouteSchema } from "./tools/get-route.js";
 import { getTripReport, getTripReportSchema } from "./tools/get-trip-report.js";
 import { searchActivities, searchActivitiesSchema } from "./tools/search-activities.js";
 import { searchCourses, searchCoursesSchema } from "./tools/search-courses.js";
+import { searchRoutes, searchRoutesSchema } from "./tools/search-routes.js";
 import { searchTripReports, searchTripReportsSchema } from "./tools/search-trip-reports.js";
 import { whoami } from "./tools/whoami.js";
 
@@ -78,6 +83,23 @@ server.tool(
 );
 
 server.tool(
+  "search_routes",
+  "Search routes and places on mountaineers.org. Filter by activity type, difficulty, climbing category, and more.",
+  searchRoutesSchema.shape,
+  async (input) => {
+    try {
+      const result = await searchRoutes(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
   "get_activity",
   "Get detailed information about a specific activity by URL or slug.",
   getActivitySchema.shape,
@@ -101,6 +123,40 @@ server.tool(
   async (input) => {
     try {
       const result = await getTripReport(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "get_route",
+  "Get detailed information about a specific route or place on mountaineers.org, including difficulty, elevation, directions, and maps.",
+  getRouteSchema.shape,
+  async (input) => {
+    try {
+      const result = await getRoute(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "get_course",
+  "Get detailed information about a specific course, including schedule, pricing, leaders, and badges earned.",
+  getCourseSchema.shape,
+  async (input) => {
+    try {
+      const result = await getCourse(client, input);
       return { content: [{ type: "text", text: formatResult(result) }] };
     } catch (e) {
       return {
@@ -154,6 +210,40 @@ server.tool(
   async (input) => {
     try {
       const result = await getMyCourses(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "get_activity_history",
+  "Get the logged-in user's completed activity history (past trips, courses, events). Supports filtering by category, result, activity type, and date range.",
+  getActivityHistorySchema.shape,
+  async (input) => {
+    try {
+      const result = await getActivityHistory(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "get_my_badges",
+  "Get the logged-in user's earned badges and certifications, including earned and expiration dates.",
+  getMyBadgesSchema.shape,
+  async (input) => {
+    try {
+      const result = await getMyBadges(client, input);
       return { content: [{ type: "text", text: formatResult(result) }] };
     } catch (e) {
       return {

@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.4.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.3.0...v1.4.0) (2026-02-07)
+
+
+### Features
+
+* add get_route, get_course, get_activity_history, and get_my_badges tools ([#26](https://github.com/dreamiurg/mountaineers-mcp/issues/26)) ([015f5ea](https://github.com/dreamiurg/mountaineers-mcp/commit/015f5ea90e6b3e7ff0f0734a38c8a7b6eb031b72))
+
+## [1.3.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.2.1...v1.3.0) (2026-02-06)
+
+
+### Features
+
+* add search_routes tool for routes and places ([#25](https://github.com/dreamiurg/mountaineers-mcp/issues/25)) ([fe2bf31](https://github.com/dreamiurg/mountaineers-mcp/commit/fe2bf31c63359f507829874e6d1c028bb5edb4ad))
+
+
+### Bug Fixes
+
+* parse activities and courses from pat-react data-props JSON ([#19](https://github.com/dreamiurg/mountaineers-mcp/issues/19)) ([89c563a](https://github.com/dreamiurg/mountaineers-mcp/commit/89c563a46d1fada9403b36687839207d21cbfa58))
+
 ## [1.2.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.2.0...v1.2.1) (2026-02-06)
 
 
