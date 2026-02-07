@@ -37,14 +37,14 @@ describe("getActivityRoster", () => {
     );
   });
 
-  it("returns empty array when no roster entries exist", async () => {
+  it("returns ListResult with empty items when no roster entries exist", async () => {
     const result = await getActivityRoster(client, {
       url: "https://www.mountaineers.org/activities/activities/empty-hike",
     });
-    expect(result).toEqual([]);
+    expect(result).toEqual({ total_count: 0, items: [], limit: 0 });
   });
 
-  it("returns parsed roster entries", async () => {
+  it("returns ListResult with parsed roster entries", async () => {
     const rosterHtml = `
       <div class="roster-contact">
         <a class="contact-modal" href="/members/leader-1">
@@ -64,9 +64,11 @@ describe("getActivityRoster", () => {
     const result = await getActivityRoster(client, {
       url: "https://www.mountaineers.org/activities/activities/hike-1",
     });
-    expect(result).toHaveLength(2);
-    expect(result[0].name).toBe("Leader One");
-    expect(result[0].role).toBe("Leader");
-    expect(result[1].name).toBe("Participant One");
+    expect(result.total_count).toBe(2);
+    expect(result.limit).toBe(0);
+    expect(result.items).toHaveLength(2);
+    expect(result.items[0].name).toBe("Leader One");
+    expect(result.items[0].role).toBe("Leader");
+    expect(result.items[1].name).toBe("Participant One");
   });
 });

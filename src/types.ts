@@ -167,6 +167,12 @@ export interface RouteSummary {
   description: string | null;
 }
 
+export interface ListResult<T> {
+  total_count: number;
+  items: T[];
+  limit: number;
+}
+
 export interface SearchResult<T> {
   total_count: number;
   items: T[];

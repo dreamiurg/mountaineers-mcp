@@ -56,12 +56,12 @@ describe("getActivityHistory", () => {
     const client = createMockClient(items);
 
     const result = await getActivityHistory(client, { limit: 0 });
-    expect(result).toHaveLength(1);
-    expect(result[0].title).toBe("Trail Run");
-    expect(result[0].uid).toBe("abc123");
-    expect(result[0].start_date).toBe("2025-06-15");
-    expect(result[0].result).toBe("Successful");
-    expect(result[0].activity_type).toBe("Trail Running");
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].title).toBe("Trail Run");
+    expect(result.items[0].uid).toBe("abc123");
+    expect(result.items[0].start_date).toBe("2025-06-15");
+    expect(result.items[0].result).toBe("Successful");
+    expect(result.items[0].activity_type).toBe("Trail Running");
   });
 
   it("handles leader as object with name", async () => {
@@ -77,7 +77,7 @@ describe("getActivityHistory", () => {
     const client = createMockClient(items);
 
     const result = await getActivityHistory(client, { limit: 0 });
-    expect(result[0].leader).toBe("John Smith");
+    expect(result.items[0].leader).toBe("John Smith");
   });
 
   it("handles leader as string", async () => {
@@ -93,7 +93,7 @@ describe("getActivityHistory", () => {
     const client = createMockClient(items);
 
     const result = await getActivityHistory(client, { limit: 0 });
-    expect(result[0].leader).toBe("Jane Leader");
+    expect(result.items[0].leader).toBe("Jane Leader");
   });
 
   it("sorts by date descending (most recent first)", async () => {
@@ -105,7 +105,7 @@ describe("getActivityHistory", () => {
     const client = createMockClient(items);
 
     const result = await getActivityHistory(client, { limit: 0 });
-    expect(result.map((a) => a.title)).toEqual(["New", "Mid", "Old"]);
+    expect(result.items.map((a) => a.title)).toEqual(["New", "Mid", "Old"]);
   });
 
   it("filters by category", async () => {
@@ -116,8 +116,8 @@ describe("getActivityHistory", () => {
     const client = createMockClient(items);
 
     const result = await getActivityHistory(client, { category: "trip", limit: 0 });
-    expect(result).toHaveLength(1);
-    expect(result[0].title).toBe("Trip");
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].title).toBe("Trip");
   });
 
   it("filters by result", async () => {
@@ -128,8 +128,8 @@ describe("getActivityHistory", () => {
     const client = createMockClient(items);
 
     const result = await getActivityHistory(client, { result: "Successful", limit: 0 });
-    expect(result).toHaveLength(1);
-    expect(result[0].title).toBe("Good");
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].title).toBe("Good");
   });
 
   it("filters by activity_type", async () => {
@@ -140,8 +140,8 @@ describe("getActivityHistory", () => {
     const client = createMockClient(items);
 
     const result = await getActivityHistory(client, { activity_type: "Climbing", limit: 0 });
-    expect(result).toHaveLength(1);
-    expect(result[0].title).toBe("Climb");
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].title).toBe("Climb");
   });
 
   it("filters by date range", async () => {
@@ -157,34 +157,40 @@ describe("getActivityHistory", () => {
       date_to: "2024-12-31",
       limit: 0,
     });
-    expect(result).toHaveLength(1);
-    expect(result[0].title).toBe("Middle");
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].title).toBe("Middle");
   });
 
-  it("defaults to 20 results", async () => {
-    const items = Array.from({ length: 25 }, (_, i) => ({
-      uid: String(i),
-      href: `/a/${i}`,
-      title: `Activity ${i}`,
-      start: `2025-01-${String(i + 1).padStart(2, "0")}`,
-    }));
-    const client = createMockClient(items);
+  describe("limit and total_count", () => {
+    it("defaults to 20 results with total_count reflecting all", async () => {
+      const items = Array.from({ length: 25 }, (_, i) => ({
+        uid: String(i),
+        href: `/a/${i}`,
+        title: `Activity ${i}`,
+        start: `2025-01-${String(i + 1).padStart(2, "0")}`,
+      }));
+      const client = createMockClient(items);
 
-    const result = await getActivityHistory(client, {});
-    expect(result).toHaveLength(20);
-  });
+      const result = await getActivityHistory(client, {});
+      expect(result.items).toHaveLength(20);
+      expect(result.total_count).toBe(25);
+      expect(result.limit).toBe(20);
+    });
 
-  it("returns all with limit=0", async () => {
-    const items = Array.from({ length: 25 }, (_, i) => ({
-      uid: String(i),
-      href: `/a/${i}`,
-      title: `Activity ${i}`,
-      start: `2025-01-${String(i + 1).padStart(2, "0")}`,
-    }));
-    const client = createMockClient(items);
+    it("returns all with limit=0", async () => {
+      const items = Array.from({ length: 25 }, (_, i) => ({
+        uid: String(i),
+        href: `/a/${i}`,
+        title: `Activity ${i}`,
+        start: `2025-01-${String(i + 1).padStart(2, "0")}`,
+      }));
+      const client = createMockClient(items);
 
-    const result = await getActivityHistory(client, { limit: 0 });
-    expect(result).toHaveLength(25);
+      const result = await getActivityHistory(client, { limit: 0 });
+      expect(result.items).toHaveLength(25);
+      expect(result.total_count).toBe(25);
+      expect(result.limit).toBe(0);
+    });
   });
 
   it("handles wrapped response with items key", async () => {
@@ -193,8 +199,8 @@ describe("getActivityHistory", () => {
     (client.fetchJson as ReturnType<typeof vi.fn>).mockResolvedValue(wrapped);
 
     const result = await getActivityHistory(client, { limit: 0 });
-    expect(result).toHaveLength(1);
-    expect(result[0].title).toBe("Wrapped");
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].title).toBe("Wrapped");
   });
 
   it("prepends base URL to relative hrefs", async () => {
@@ -202,7 +208,7 @@ describe("getActivityHistory", () => {
     const client = createMockClient(items);
 
     const result = await getActivityHistory(client, { limit: 0 });
-    expect(result[0].url).toBe("https://www.mountaineers.org/activities/hike-1");
+    expect(result.items[0].url).toBe("https://www.mountaineers.org/activities/hike-1");
   });
 
   it("falls back to trip_results for result field", async () => {
@@ -212,6 +218,6 @@ describe("getActivityHistory", () => {
     const client = createMockClient(items);
 
     const result = await getActivityHistory(client, { limit: 0 });
-    expect(result[0].result).toBe("Complete");
+    expect(result.items[0].result).toBe("Complete");
   });
 });

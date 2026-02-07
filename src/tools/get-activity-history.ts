@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { MountaineersClient } from "../client.js";
-import type { MyActivity } from "../types.js";
+import type { ListResult, MyActivity } from "../types.js";
 import { whoami } from "./whoami.js";
 
 export const getActivityHistorySchema = z.object({
@@ -38,7 +38,7 @@ function uidFromUrl(url: string): string {
 export async function getActivityHistory(
   client: MountaineersClient,
   input: GetActivityHistoryInput,
-): Promise<MyActivity[]> {
+): Promise<ListResult<MyActivity>> {
   const me = await whoami(client);
 
   const raw = await client.fetchJson<HistoryItemJson[] | Record<string, unknown>>(
@@ -111,10 +111,11 @@ export async function getActivityHistory(
     activities = activities.filter((a) => a.start_date && a.start_date <= dt);
   }
 
+  const totalCount = activities.length;
   const limit = input.limit ?? 20;
   if (limit > 0) {
     activities = activities.slice(0, limit);
   }
 
-  return activities;
+  return { total_count: totalCount, items: activities, limit };
 }

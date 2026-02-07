@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { MountaineersClient } from "../client.js";
 import { parseMemberProfile } from "../parsers.js";
-import type { Badge } from "../types.js";
+import type { Badge, ListResult } from "../types.js";
 import { whoami } from "./whoami.js";
 
 export const getMyBadgesSchema = z.object({
@@ -17,7 +17,7 @@ export type GetMyBadgesInput = z.infer<typeof getMyBadgesSchema>;
 export async function getMyBadges(
   client: MountaineersClient,
   input: GetMyBadgesInput,
-): Promise<Badge[]> {
+): Promise<ListResult<Badge>> {
   const me = await whoami(client);
 
   const $ = await client.fetchHtml(`/members/${me.slug}`, {
@@ -36,5 +36,5 @@ export async function getMyBadges(
     badges = badges.filter((b) => b.name.toLowerCase().includes(needle));
   }
 
-  return badges;
+  return { total_count: badges.length, items: badges, limit: 0 };
 }
