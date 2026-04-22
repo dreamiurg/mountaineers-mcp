@@ -71,4 +71,8 @@ jobs:
           TAG_NAME: ${{ inputs.tag_name }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          if [ "v${VERSION}" != "$TAG_NAME" ] && [ "${VERSION}" != "$TAG_NAME" ]; then
+            echo "Version mismatch: package.json=${VERSION} tag=${TAG_NAME}" >&2
+            exit 1
+          fi
           gh release upload "$TAG_NAME" "mountaineers-mcp-${VERSION}.mcpb" --clobber
