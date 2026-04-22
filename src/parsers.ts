@@ -4,6 +4,8 @@ import type {
   ActivitySummary,
   CourseDetail,
   CourseSummary,
+  EventDetail,
+  EventSummary,
   MemberProfile,
   MemberSummary,
   MyActivity,
@@ -281,6 +283,39 @@ export function parseTripReportResults(
       activity_type,
       trip_result,
       description: text($el, ".result-summary"),
+    });
+  });
+
+  return {
+    total_count: totalCount,
+    items,
+    page,
+    has_more: (page + 1) * 20 < totalCount,
+  };
+}
+
+export function parseEventResults($: CheerioAPI, page: number): SearchResult<EventSummary> {
+  const totalCount = parseResultCount($);
+  const items: EventSummary[] = [];
+
+  $(".result-item").each((_i, el) => {
+    const $el = $(el);
+    const date = text($el, ".result-date");
+
+    let location: string | null = null;
+    $el.find(".result-sidebar > div").each((_j, sidebarEl) => {
+      if (location) return;
+      const line = text($(sidebarEl));
+      if (!line) return;
+      if (date && line === date) return;
+      location = line;
+    });
+
+    items.push({
+      title: text($el, ".result-title a") ?? "",
+      url: href($el, ".result-title a") ?? "",
+      date,
+      location,
     });
   });
 
@@ -812,6 +847,79 @@ export function parseCourseDetail($: CheerioAPI, url: string): CourseDetail {
       const badgeName = $(el).text().trim();
       if (badgeName) detail.badges_earned.push(badgeName);
     });
+
+  return detail;
+}
+
+const EVENT_BODY_MAX_CHARS = 5000;
+
+function extractEventField(
+  $: CheerioAPI,
+  li: ReturnType<CheerioAPI>[0],
+): { label: string; key: string; value: string } | null {
+  const $li = $(li);
+  const $label = $li.find("label").first();
+  if (!$label.length) return null;
+  // Use only the first text node — handles nested <label> children.
+  const rawLabel = $label.contents().first().text().trim();
+  const label = rawLabel.replace(/:\s*$/, "").trim();
+  if (!label) return null;
+  const value = $li.clone().children("label").remove().end().text().trim().replace(/\s+/g, " ");
+  return { label, key: label.toLowerCase(), value };
+}
+
+function applyEventField(
+  detail: EventDetail,
+  field: { label: string; key: string; value: string },
+) {
+  const { label, key, value } = field;
+  if (key === "add to calendar") return;
+  if (key === "when") detail.when = value || null;
+  else if (key === "committee") detail.committee = value || null;
+  else if (key === "branch") detail.branch = value || null;
+  else if (value) detail.extra_fields[label] = value;
+}
+
+export function parseEventDetail($: CheerioAPI, url: string): EventDetail {
+  const detail: EventDetail = {
+    title: $("h1.documentFirstHeading").text().trim() || $("h1").first().text().trim(),
+    url,
+    description: $("p.documentDescription").text().trim() || null,
+    when: null,
+    committee: null,
+    branch: null,
+    body_text: null,
+    extra_fields: {},
+  };
+
+  $("ul.details > li").each((_i, li) => {
+    const field = extractEventField($, li);
+    if (field) applyEventField(detail, field);
+  });
+
+  const useFallback = !$("#parent-fieldname-text").length;
+  const $bodySource = useFallback ? $("#content-core") : $("#parent-fieldname-text");
+  if ($bodySource.length) {
+    let bodyText: string;
+    if (useFallback) {
+      // #content-core wraps the entire article including the title, description,
+      // and ul.details — strip those before flattening so we don't duplicate
+      // already-extracted fields into body_text.
+      const $clone = $bodySource.clone();
+      $clone
+        .find("h1.documentFirstHeading, p.documentDescription, ul.details, .leaders, .sidebar")
+        .remove();
+      bodyText = $clone.text().trim().replace(/\s+/g, " ");
+    } else {
+      bodyText = $bodySource.text().trim().replace(/\s+/g, " ");
+    }
+    if (bodyText) {
+      detail.body_text =
+        bodyText.length > EVENT_BODY_MAX_CHARS
+          ? `${bodyText.slice(0, EVENT_BODY_MAX_CHARS)}…`
+          : bodyText;
+    }
+  }
 
   return detail;
 }
