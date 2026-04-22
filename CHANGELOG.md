@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.6.2...v1.7.0) (2026-04-22)
+
+
+### Features
+
+* **tools:** tier 1 — 5 member-centric MCP tools + tightened search descriptions ([#61](https://github.com/dreamiurg/mountaineers-mcp/issues/61)) ([dd638e9](https://github.com/dreamiurg/mountaineers-mcp/commit/dd638e91f72dabb1f5a14526cae105b686efaaa1))
+
 ## [1.6.2](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.6.1...v1.6.2) (2026-04-22)
 
 
