@@ -9,6 +9,10 @@ coverage/
 .beads/
 .bv/
 
+# Claude Code agent ephemera
+.claude/
+.oneshot/
+
 # Abacus
 .abacus/
 

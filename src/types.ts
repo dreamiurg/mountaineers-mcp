@@ -106,6 +106,12 @@ export interface Badge {
   expires: string | null;
 }
 
+export interface MemberSummary {
+  name: string;
+  slug: string;
+  url: string;
+}
+
 export interface RosterEntry {
   name: string;
   profile_url: string | null;

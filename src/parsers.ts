@@ -5,6 +5,7 @@ import type {
   CourseDetail,
   CourseSummary,
   MemberProfile,
+  MemberSummary,
   MyActivity,
   MyCourse,
   RosterEntry,
@@ -291,6 +292,27 @@ export function parseTripReportResults(
   };
 }
 
+export function parseMemberResults($: CheerioAPI, page: number): SearchResult<MemberSummary> {
+  const totalCount = parseResultCount($);
+  const items: MemberSummary[] = [];
+
+  $(".result-item").each((_i, el) => {
+    const $el = $(el);
+    const name = text($el, ".result-title a") ?? "";
+    const url = href($el, ".result-title a") ?? "";
+    if (!name || !url) return;
+    const slug = url.match(/\/members\/([^/?#]+)/)?.[1] ?? "";
+    items.push({ name, slug, url });
+  });
+
+  return {
+    total_count: totalCount,
+    items,
+    page,
+    has_more: (page + 1) * 20 < totalCount,
+  };
+}
+
 export function parseTripReportDetail($: CheerioAPI, url: string): TripReportDetail {
   const detail: TripReportDetail = {
     title: $("h1.documentFirstHeading").text().trim() || $("h1").first().text().trim(),
@@ -496,7 +518,7 @@ export function parseRouteResults($: CheerioAPI, page: number): SearchResult<Rou
 }
 
 /** Extract uid slug from the last path segment of a URL. */
-function uidFromUrl(url: string): string {
+export function uidFromUrl(url: string): string {
   const match = url.match(/\/([^/]+)\/?$/);
   return match ? match[1] : "";
 }
