@@ -300,9 +300,18 @@ export function parseTripReportResults(
 }
 
 function inferBadgeType(url: string): BadgeType {
-  if (url.includes("/membership/badges/award-badges/")) return "award";
-  if (url.includes("/membership/badges/instructor-badges/")) return "instructor";
-  if (url.includes("/membership/badges/leader-badges/")) return "leader";
+  // Parse pathname to avoid matching query strings or hashes that happen to
+  // contain a badge path segment. Falls back to raw string check if URL parsing
+  // fails (e.g. caller passed a bare path that the URL ctor doesn't recognize).
+  let path: string;
+  try {
+    path = new URL(url, BASE_URL).pathname;
+  } catch {
+    path = url;
+  }
+  if (path.includes("/membership/badges/award-badges/")) return "award";
+  if (path.includes("/membership/badges/instructor-badges/")) return "instructor";
+  if (path.includes("/membership/badges/leader-badges/")) return "leader";
   return "other";
 }
 
