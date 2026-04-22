@@ -6,14 +6,19 @@ import { getActivity, getActivitySchema } from "./tools/get-activity.js";
 import { getActivityHistory, getActivityHistorySchema } from "./tools/get-activity-history.js";
 import { getActivityRoster, getActivityRosterSchema } from "./tools/get-activity-roster.js";
 import { getCourse, getCourseSchema } from "./tools/get-course.js";
+import { getMemberActivities, getMemberActivitiesSchema } from "./tools/get-member-activities.js";
+import { getMemberCourses, getMemberCoursesSchema } from "./tools/get-member-courses.js";
+import { getMemberHistory, getMemberHistorySchema } from "./tools/get-member-history.js";
 import { getMemberProfile, getMemberProfileSchema } from "./tools/get-member-profile.js";
 import { getMyActivities, getMyActivitiesSchema } from "./tools/get-my-activities.js";
 import { getMyBadges, getMyBadgesSchema } from "./tools/get-my-badges.js";
 import { getMyCourses, getMyCoursesSchema } from "./tools/get-my-courses.js";
 import { getRoute, getRouteSchema } from "./tools/get-route.js";
+import { getRouteTripReports, getRouteTripReportsSchema } from "./tools/get-route-trip-reports.js";
 import { getTripReport, getTripReportSchema } from "./tools/get-trip-report.js";
 import { searchActivities, searchActivitiesSchema } from "./tools/search-activities.js";
 import { searchCourses, searchCoursesSchema } from "./tools/search-courses.js";
+import { searchMembers, searchMembersSchema } from "./tools/search-members.js";
 import { searchRoutes, searchRoutesSchema } from "./tools/search-routes.js";
 import { searchTripReports, searchTripReportsSchema } from "./tools/search-trip-reports.js";
 import { whoami } from "./tools/whoami.js";
@@ -33,7 +38,7 @@ function formatResult(data: unknown): string {
 
 server.tool(
   "search_activities",
-  "Search for outdoor activities on mountaineers.org. Supports filtering by type, branch, difficulty, date range, and more.",
+  "Search currently-published outdoor activities on mountaineers.org (upcoming trips, course field trips, clinics). Supports filtering by type, branch, difficulty, date range, and more. Past activity instances are NOT in the search index — if you have a known historical activity URL use get_activity, or use get_member_history for a member's past activities.",
   searchActivitiesSchema.shape,
   async (input) => {
     try {
@@ -50,7 +55,7 @@ server.tool(
 
 server.tool(
   "search_courses",
-  "Search for courses, clinics, and seminars on mountaineers.org.",
+  "Search currently-published courses, clinics, and seminars on mountaineers.org (upcoming and rolling-enrollment only). Past course instances (prior years) are NOT in the search index, even though their URLs still resolve — if you have a known historical course URL use get_course, or use get_my_courses for the authenticated user's past courses.",
   searchCoursesSchema.shape,
   async (input) => {
     try {
@@ -67,11 +72,28 @@ server.tool(
 
 server.tool(
   "search_trip_reports",
-  "Search trip reports on mountaineers.org.",
+  "Search trip reports on mountaineers.org. Trip reports are member-written accounts of past outings; the full historical archive (8000+ reports) is searchable here. To narrow to a specific route, pass the route name as the query.",
   searchTripReportsSchema.shape,
   async (input) => {
     try {
       const result = await searchTripReports(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "get_route_trip_reports",
+  "List trip reports filed against a specific route/place URL. Paginated, 20 per page; results follow the site's default order (typically newest first). Use this when you have a route URL and want member-written reports for that route specifically — more accurate than searching trip reports by route name.",
+  getRouteTripReportsSchema.shape,
+  async (input) => {
+    try {
+      const result = await getRouteTripReports(client, input);
       return { content: [{ type: "text", text: formatResult(result) }] };
     } catch (e) {
       return {
@@ -222,7 +244,7 @@ server.tool(
 
 server.tool(
   "get_activity_history",
-  "Get the logged-in user's completed activity history (past trips, courses, events). Supports filtering by category, result, activity type, and date range.",
+  "Get the logged-in user's completed activity history (past trips, courses, events). Supports filtering by category, result, activity type, and date range. For arbitrary members use get_member_history.",
   getActivityHistorySchema.shape,
   async (input) => {
     try {
@@ -278,6 +300,74 @@ server.tool(
   async (input) => {
     try {
       const result = await getActivityRoster(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "search_members",
+  "Search the mountaineers.org member directory by name or text. Returns name + slug + profile URL. The directory includes both individual members and group/role accounts (e.g. committee mailboxes); both are returned with no type marker. Requires authentication and a non-empty query.",
+  searchMembersSchema.shape,
+  async (input) => {
+    try {
+      const result = await searchMembers(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "get_member_history",
+  "Get the past activity history for any mountaineers.org member, given their slug or profile URL. Returns completed activities only (not future-registered). Same filters as get_activity_history (which is the self-only version). Requires authentication.",
+  getMemberHistorySchema.shape,
+  async (input) => {
+    try {
+      const result = await getMemberHistory(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "get_member_courses",
+  "Get a member's courses (upcoming + past, merged into one list ordered by enrolled date ascending), given their slug or profile URL. Mirrors get_my_courses for any member. Requires authentication.",
+  getMemberCoursesSchema.shape,
+  async (input) => {
+    try {
+      const result = await getMemberCourses(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "get_member_activities",
+  "Get a member's upcoming/registered activities by slug or profile URL. Returns activities the member is currently signed up for — for past completed activities use get_member_history. Mirrors get_my_activities for any member. Requires authentication.",
+  getMemberActivitiesSchema.shape,
+  async (input) => {
+    try {
+      const result = await getMemberActivities(client, input);
       return { content: [{ type: "text", text: formatResult(result) }] };
     } catch (e) {
       return {
