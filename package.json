@@ -57,6 +57,14 @@
     "@anthropic-ai/mcpb": "^2.1.2"
   },
   "overrides": {
-    "tmp": ">=0.2.4"
+    "tmp": "0.2.5",
+    "node-forge": "1.4.0",
+    "undici": "8.1.0",
+    "path-to-regexp": "8.4.2",
+    "express-rate-limit": "8.3.2",
+    "hono": "4.12.14",
+    "@hono/node-server": "1.19.14",
+    "ajv": "8.18.0",
+    "qs": "6.15.1"
   }
 }
