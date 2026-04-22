@@ -3,6 +3,8 @@ import type { MountaineersClient } from "../client.js";
 import type { ListResult, MyActivity } from "../types.js";
 import { fetchMemberHistory, normalizeMemberSlug } from "./_member-history-shared.js";
 
+const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD");
+
 export const getMemberHistorySchema = z.object({
   member: z
     .string()
@@ -13,9 +15,14 @@ export const getMemberHistorySchema = z.object({
     .string()
     .optional()
     .describe("Filter by activity type: 'Climbing', 'Day Hiking', etc."),
-  date_from: z.string().optional().describe("Filter from this date (YYYY-MM-DD)"),
-  date_to: z.string().optional().describe("Filter to this date (YYYY-MM-DD)"),
-  limit: z.number().optional().describe("Max results to return (default 20, use 0 for all)"),
+  date_from: isoDateSchema.optional().describe("Filter from this date (YYYY-MM-DD)"),
+  date_to: isoDateSchema.optional().describe("Filter to this date (YYYY-MM-DD)"),
+  limit: z
+    .number()
+    .int()
+    .min(0)
+    .optional()
+    .describe("Max results to return (default 20, use 0 for all)"),
 });
 
 export type GetMemberHistoryInput = z.infer<typeof getMemberHistorySchema>;

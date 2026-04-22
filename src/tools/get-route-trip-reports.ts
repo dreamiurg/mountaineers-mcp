@@ -16,14 +16,14 @@ export const getRouteTripReportsSchema = z.object({
 export type GetRouteTripReportsInput = z.infer<typeof getRouteTripReportsSchema>;
 
 function normalizeRoutePath(routeUrl: string): string {
-  let path = stripBase(routeUrl.trim());
-  path = path.replace(/\/+$/, "");
-  if (!path.includes("/activities/routes-places/")) {
+  const stripped = stripBase(routeUrl.trim()).replace(/\/+$/, "");
+  const m = stripped.match(/^\/activities\/routes-places\/([^/]+)/);
+  if (!m) {
     throw new Error(
       `Invalid route_url: must be a /activities/routes-places/{slug} path or full URL. Got: ${routeUrl}`,
     );
   }
-  return path;
+  return `/activities/routes-places/${m[1]}`;
 }
 
 export async function getRouteTripReports(

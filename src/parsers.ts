@@ -301,7 +301,8 @@ export function parseMemberResults($: CheerioAPI, page: number): SearchResult<Me
     const name = text($el, ".result-title a") ?? "";
     const url = href($el, ".result-title a") ?? "";
     if (!name || !url) return;
-    const slug = url.match(/\/members\/([^/?#]+)/)?.[1] ?? "";
+    const slug = url.match(/\/members\/([^/?#]+)/)?.[1];
+    if (!slug) return;
     items.push({ name, slug, url });
   });
 
