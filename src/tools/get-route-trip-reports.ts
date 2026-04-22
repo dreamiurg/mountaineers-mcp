@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { MountaineersClient } from "../client.js";
 import { parseTripReportResults } from "../parsers.js";
 import type { SearchResult, TripReportSummary } from "../types.js";
-import { stripBase } from "./_member-history-shared.js";
+import { stripBase } from "../url-helpers.js";
 
 export const getRouteTripReportsSchema = z.object({
   route_url: z

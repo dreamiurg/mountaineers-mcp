@@ -204,6 +204,29 @@ export interface CommitteeSummary {
   branch_slug: string;
 }
 
+export type BadgeType = "award" | "instructor" | "leader" | "other";
+
+export interface BadgeSummary {
+  title: string;
+  url: string;
+  badge_type: BadgeType;
+}
+
+export interface BadgeCategory {
+  name: string;
+  criteria: string;
+}
+
+export interface BadgeDetail {
+  title: string;
+  url: string;
+  description: string | null;
+  badge_type: BadgeType;
+  branch_slug: string | null;
+  body_text: string | null;
+  categories: BadgeCategory[];
+}
+
 export interface ListResult<T> {
   total_count: number;
   items: T[];

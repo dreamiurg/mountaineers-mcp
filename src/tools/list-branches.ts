@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { MountaineersClient } from "../client.js";
 import type { BranchSummary } from "../types.js";
-import { BRANCH_SLUG_PATTERN, stripBase } from "./_member-history-shared.js";
+import { BRANCH_SLUG_PATTERN, stripBase } from "../url-helpers.js";
 
 export const listBranchesSchema = z.object({});
 

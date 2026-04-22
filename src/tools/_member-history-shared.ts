@@ -1,6 +1,7 @@
 import type { MountaineersClient } from "../client.js";
 import { uidFromUrl } from "../parsers.js";
 import type { ListResult, MyActivity } from "../types.js";
+import { extractSlugAfterPrefix } from "../url-helpers.js";
 
 export interface MemberHistoryFilters {
   category?: string;
@@ -104,24 +105,6 @@ export async function fetchMemberHistory(
   }
 
   return { total_count: totalCount, items: activities, limit };
-}
-
-export const BRANCH_SLUG_PATTERN = "[a-z0-9-]+-branch";
-
-export function stripBase(url: string): string {
-  return url.replace(/^https?:\/\/(www\.)?mountaineers\.org/, "");
-}
-
-// Strips host + optional /<prefix>/, then returns the first remaining path segment.
-// Accepts bare slugs (no prefix) too. Returns "" if there's nothing left.
-export function extractSlugAfterPrefix(input: string, prefix: string): string {
-  const escaped = prefix.replace(/^\/+|\/+$/g, "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp -- prefix is escaped on the line above
-  const prefixRe = new RegExp(`^/+${escaped}/+`);
-  const trimmed = stripBase(input.trim())
-    .replace(prefixRe, "")
-    .replace(/^\/+|\/+$/g, "");
-  return trimmed.split("/")[0] ?? "";
 }
 
 export function normalizeMemberSlug(input: string): string {
