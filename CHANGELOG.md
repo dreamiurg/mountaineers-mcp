@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.2](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.6.1...v1.6.2) (2026-04-22)
+
+
+### Bug Fixes
+
+* use local date for active_only badge filter ([#56](https://github.com/dreamiurg/mountaineers-mcp/issues/56)) ([205ae70](https://github.com/dreamiurg/mountaineers-mcp/commit/205ae70864994131cb17bb2f070f68e344f172bd))
+
 ## [1.6.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.6.0...v1.6.1) (2026-02-07)
 
 
