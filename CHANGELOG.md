@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.8.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.8.0...v1.8.1) (2026-04-23)
+
+
+### Bug Fixes
+
+* **docs:** correct npm run dev description ([#67](https://github.com/dreamiurg/mountaineers-mcp/issues/67)) ([8db8204](https://github.com/dreamiurg/mountaineers-mcp/commit/8db8204fb8991f5b027c5e8d7945bc94e8b9e957))
+
 ## [1.8.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.7.0...v1.8.0) (2026-04-23)
 
 
