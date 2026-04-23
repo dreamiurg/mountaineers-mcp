@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.7.0...v1.8.0) (2026-04-23)
+
+
+### Features
+
+* **tools:** add 4 events + org-structure tools ([#63](https://github.com/dreamiurg/mountaineers-mcp/issues/63)) ([674394a](https://github.com/dreamiurg/mountaineers-mcp/commit/674394a5e9864122a3b0797bade5f7aa6ee631ea))
+* **tools:** tier 3 — 2 badge catalog tools + url-helpers extraction ([#65](https://github.com/dreamiurg/mountaineers-mcp/issues/65)) ([df17127](https://github.com/dreamiurg/mountaineers-mcp/commit/df1712725b61201e75f0a5be57222752ac45e399))
+
 ## [1.7.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.6.2...v1.7.0) (2026-04-22)
 
 
