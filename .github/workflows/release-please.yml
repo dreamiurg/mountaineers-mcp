@@ -3,11 +3,18 @@ name: Release Please
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Existing tag to re-publish (e.g. v1.8.0). Leave empty for normal release-please flow."
+        required: false
+        default: ""
 
 permissions: {}
 
 jobs:
   release-please:
+    if: ${{ github.event_name == 'push' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -21,12 +28,63 @@ jobs:
         with:
           release-type: node
 
-  publish:
+  publish-npm:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
-    uses: ./.github/workflows/publish.yml
-    with:
-      tag_name: ${{ needs.release-please.outputs.tag_name }}
+    if: ${{ always() && (needs.release-please.outputs.release_created == 'true' || inputs.tag_name != '') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name || inputs.tag_name }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - run: npm ci
+      - run: npm run check
+      - run: npm test
+      - run: npm run build
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+
+  publish-mcpb:
+    needs: release-please
+    if: ${{ always() && (needs.release-please.outputs.release_created == 'true' || inputs.tag_name != '') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
     permissions:
       contents: write
-      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.release-please.outputs.tag_name || inputs.tag_name }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Build MCPB
+        run: npm run build:mcpb
+
+      - name: Upload MCPB to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ needs.release-please.outputs.tag_name || inputs.tag_name }}
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if [ "v${VERSION}" != "$TAG_NAME" ] && [ "${VERSION}" != "$TAG_NAME" ]; then
+            echo "Version mismatch: package.json=${VERSION} tag=${TAG_NAME}" >&2
+            exit 1
+          fi
+          gh release upload "$TAG_NAME" "mountaineers-mcp-${VERSION}.mcpb" --clobber
