@@ -1,6 +1,7 @@
 import type { MountaineersClient } from "../client.js";
 import { uidFromUrl } from "../parsers.js";
 import type { ListResult, MyActivity } from "../types.js";
+import { extractSlugAfterPrefix } from "../url-helpers.js";
 
 export interface MemberHistoryFilters {
   category?: string;
@@ -106,16 +107,8 @@ export async function fetchMemberHistory(
   return { total_count: totalCount, items: activities, limit };
 }
 
-export function stripBase(url: string): string {
-  return url.replace(/^https?:\/\/(www\.)?mountaineers\.org/, "");
-}
-
 export function normalizeMemberSlug(input: string): string {
-  const trimmed = stripBase(input.trim())
-    .replace(/^\/+members\/+/, "")
-    .replace(/^\/+/, "")
-    .replace(/\/+$/, "");
-  const slug = trimmed.split("/")[0] ?? "";
+  const slug = extractSlugAfterPrefix(input, "members");
   if (!slug) {
     throw new Error(`member slug cannot be empty (got: ${JSON.stringify(input)})`);
   }

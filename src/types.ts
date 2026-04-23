@@ -112,6 +112,13 @@ export interface MemberSummary {
   url: string;
 }
 
+export interface EventSummary {
+  title: string;
+  url: string;
+  date: string | null;
+  location: string | null;
+}
+
 export interface RosterEntry {
   name: string;
   profile_url: string | null;
@@ -166,11 +173,58 @@ export interface CourseDetail {
   badges_earned: string[];
 }
 
+export interface EventDetail {
+  title: string;
+  url: string;
+  description: string | null;
+  when: string | null;
+  committee: string | null;
+  branch: string | null;
+  body_text: string | null;
+  extra_fields: Record<string, string>;
+}
+
 export interface RouteSummary {
   title: string;
   url: string;
   type: string | null;
   description: string | null;
+}
+
+export interface BranchSummary {
+  slug: string;
+  name: string;
+  url: string;
+}
+
+export interface CommitteeSummary {
+  slug: string;
+  name: string;
+  url: string;
+  branch_slug: string;
+}
+
+export type BadgeType = "award" | "instructor" | "leader" | "other";
+
+export interface BadgeSummary {
+  title: string;
+  url: string;
+  badge_type: BadgeType;
+}
+
+export interface BadgeCategory {
+  name: string;
+  criteria: string;
+}
+
+export interface BadgeDetail {
+  title: string;
+  url: string;
+  description: string | null;
+  badge_type: BadgeType;
+  branch_slug: string | null;
+  body_text: string | null;
+  categories: BadgeCategory[];
 }
 
 export interface ListResult<T> {

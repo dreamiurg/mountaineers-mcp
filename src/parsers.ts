@@ -2,8 +2,14 @@ import type { CheerioAPI } from "cheerio";
 import type {
   ActivityDetail,
   ActivitySummary,
+  BadgeCategory,
+  BadgeDetail,
+  BadgeSummary,
+  BadgeType,
   CourseDetail,
   CourseSummary,
+  EventDetail,
+  EventSummary,
   MemberProfile,
   MemberSummary,
   MyActivity,
@@ -15,6 +21,7 @@ import type {
   TripReportDetail,
   TripReportSummary,
 } from "./types.js";
+import { BRANCH_SLUG_PATTERN } from "./url-helpers.js";
 
 const BASE_URL = "https://www.mountaineers.org";
 
@@ -281,6 +288,79 @@ export function parseTripReportResults(
       activity_type,
       trip_result,
       description: text($el, ".result-summary"),
+    });
+  });
+
+  return {
+    total_count: totalCount,
+    items,
+    page,
+    has_more: (page + 1) * 20 < totalCount,
+  };
+}
+
+function inferBadgeType(url: string): BadgeType {
+  // Parse pathname to avoid matching query strings or hashes that happen to
+  // contain a badge path segment. Falls back to raw string check if URL parsing
+  // fails (e.g. caller passed a bare path that the URL ctor doesn't recognize).
+  let path: string;
+  try {
+    path = new URL(url, BASE_URL).pathname;
+  } catch {
+    path = url;
+  }
+  if (path.includes("/membership/badges/award-badges/")) return "award";
+  if (path.includes("/membership/badges/instructor-badges/")) return "instructor";
+  if (path.includes("/membership/badges/leader-badges/")) return "leader";
+  return "other";
+}
+
+export function parseBadgeResults($: CheerioAPI, page: number): SearchResult<BadgeSummary> {
+  const totalCount = parseResultCount($);
+  const items: BadgeSummary[] = [];
+
+  $(".result-item").each((_i, el) => {
+    const $el = $(el);
+    const title = text($el, ".result-title a") ?? "";
+    const url = href($el, ".result-title a") ?? "";
+    if (!title || !url) return;
+    items.push({
+      title,
+      url,
+      badge_type: inferBadgeType(url),
+    });
+  });
+
+  return {
+    total_count: totalCount,
+    items,
+    page,
+    has_more: (page + 1) * 20 < totalCount,
+  };
+}
+
+export function parseEventResults($: CheerioAPI, page: number): SearchResult<EventSummary> {
+  const totalCount = parseResultCount($);
+  const items: EventSummary[] = [];
+
+  $(".result-item").each((_i, el) => {
+    const $el = $(el);
+    const date = text($el, ".result-date");
+
+    let location: string | null = null;
+    $el.find(".result-sidebar > div").each((_j, sidebarEl) => {
+      if (location) return;
+      const line = text($(sidebarEl));
+      if (!line) return;
+      if (date && line === date) return;
+      location = line;
+    });
+
+    items.push({
+      title: text($el, ".result-title a") ?? "",
+      url: href($el, ".result-title a") ?? "",
+      date,
+      location,
     });
   });
 
@@ -814,4 +894,144 @@ export function parseCourseDetail($: CheerioAPI, url: string): CourseDetail {
     });
 
   return detail;
+}
+
+const EVENT_BODY_MAX_CHARS = 5000;
+
+function extractEventField(
+  $: CheerioAPI,
+  li: ReturnType<CheerioAPI>[0],
+): { label: string; key: string; value: string } | null {
+  const $li = $(li);
+  const $label = $li.find("label").first();
+  if (!$label.length) return null;
+  // Use only the first text node — handles nested <label> children.
+  const rawLabel = $label.contents().first().text().trim();
+  const label = rawLabel.replace(/:\s*$/, "").trim();
+  if (!label) return null;
+  const value = $li.clone().children("label").remove().end().text().trim().replace(/\s+/g, " ");
+  return { label, key: label.toLowerCase(), value };
+}
+
+function applyEventField(
+  detail: EventDetail,
+  field: { label: string; key: string; value: string },
+) {
+  const { label, key, value } = field;
+  if (key === "add to calendar") return;
+  if (key === "when") detail.when = value || null;
+  else if (key === "committee") detail.committee = value || null;
+  else if (key === "branch") detail.branch = value || null;
+  else if (value) detail.extra_fields[label] = value;
+}
+
+export function parseEventDetail($: CheerioAPI, url: string): EventDetail {
+  const detail: EventDetail = {
+    title: $("h1.documentFirstHeading").text().trim() || $("h1").first().text().trim(),
+    url,
+    description: $("p.documentDescription").text().trim() || null,
+    when: null,
+    committee: null,
+    branch: null,
+    body_text: null,
+    extra_fields: {},
+  };
+
+  $("ul.details > li").each((_i, li) => {
+    const field = extractEventField($, li);
+    if (field) applyEventField(detail, field);
+  });
+
+  const useFallback = !$("#parent-fieldname-text").length;
+  const $bodySource = useFallback ? $("#content-core") : $("#parent-fieldname-text");
+  if ($bodySource.length) {
+    let bodyText: string;
+    if (useFallback) {
+      // #content-core wraps the entire article including the title, description,
+      // and ul.details — strip those before flattening so we don't duplicate
+      // already-extracted fields into body_text.
+      const $clone = $bodySource.clone();
+      $clone
+        .find("h1.documentFirstHeading, p.documentDescription, ul.details, .leaders, .sidebar")
+        .remove();
+      bodyText = $clone.text().trim().replace(/\s+/g, " ");
+    } else {
+      bodyText = $bodySource.text().trim().replace(/\s+/g, " ");
+    }
+    if (bodyText) {
+      detail.body_text =
+        bodyText.length > EVENT_BODY_MAX_CHARS
+          ? `${bodyText.slice(0, EVENT_BODY_MAX_CHARS)}…`
+          : bodyText;
+    }
+  }
+
+  return detail;
+}
+
+const BADGE_BODY_MAX_CHARS = 5000;
+const BADGE_CATEGORY_MAX_CHARS = 1000;
+// nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp -- BRANCH_SLUG_PATTERN is a literal constant
+const BADGE_BRANCH_SLUG_RE = new RegExp(
+  `/membership/badges/award-badges/(${BRANCH_SLUG_PATTERN})/`,
+);
+
+export function parseBadgeDetail($: CheerioAPI, url: string): BadgeDetail {
+  const title = $("h1.documentFirstHeading").first().text().trim() || $("h1").first().text().trim();
+  const description = $("p.documentDescription").first().text().trim() || null;
+  const badge_type = inferBadgeType(url);
+  const branchMatch = url.match(BADGE_BRANCH_SLUG_RE);
+  const branch_slug = badge_type === "award" && branchMatch ? branchMatch[1] : null;
+
+  const categories: BadgeCategory[] = [];
+  const $contentCore = $("#content-core");
+  if ($contentCore.length) {
+    $contentCore.find("h3").each((_i, h3) => {
+      const $h3 = $(h3);
+      const heading = $h3.text().trim().replace(/\s+/g, " ");
+      if (!heading.startsWith("Category ")) return;
+      const $siblings = $h3.nextUntil("h3");
+      const raw = $siblings
+        .map((_j, el) => $(el).text())
+        .get()
+        .join(" ")
+        .trim()
+        .replace(/\s+/g, " ");
+      const criteria =
+        raw.length > BADGE_CATEGORY_MAX_CHARS ? `${raw.slice(0, BADGE_CATEGORY_MAX_CHARS)}…` : raw;
+      categories.push({ name: heading, criteria });
+    });
+  }
+
+  let body_text: string | null = null;
+  if ($contentCore.length) {
+    const $clone = $contentCore.clone();
+    $clone.find("h1.documentFirstHeading, p.documentDescription, h2.kicker").remove();
+    // Strip the Category h3 sections and everything that follows each up to the
+    // next h3 — these are emitted separately as `categories[]`.
+    $clone.find("h3").each((_i, h3) => {
+      const $h3 = $(h3);
+      const heading = $h3.text().trim().replace(/\s+/g, " ");
+      if (!heading.startsWith("Category ")) return;
+      $h3.nextUntil("h3").remove();
+      $h3.remove();
+    });
+    const bodyText = $clone.text().trim().replace(/\s+/g, " ");
+    if (bodyText) {
+      body_text =
+        bodyText.length > BADGE_BODY_MAX_CHARS
+          ? `${bodyText.slice(0, BADGE_BODY_MAX_CHARS)}…`
+          : bodyText;
+    }
+  }
+
+  return {
+    title,
+    url,
+    description,
+    badge_type,
+    branch_slug,
+    body_text,
+    categories,
+  };
 }
