@@ -186,7 +186,7 @@ Your credentials are stored locally on your computer and are only sent to mounta
 
 ```bash
 npm install
-npm run dev          # Start with auto-reload
+npm run dev          # Run from TypeScript sources via tsx (no build step)
 npm run check        # Typecheck + lint
 npm test             # Run tests
 npm run ci           # Full CI: check + coverage + build
