@@ -2,7 +2,7 @@ import { z } from "zod";
 import type { MountaineersClient } from "../client.js";
 import { parseEventDetail } from "../parsers.js";
 import type { EventDetail } from "../types.js";
-import { stripBase } from "./_member-history-shared.js";
+import { stripBase } from "../url-helpers.js";
 
 export const getEventSchema = z.object({
   url: z

@@ -1,11 +1,7 @@
 import { z } from "zod";
 import type { MountaineersClient } from "../client.js";
 import type { CommitteeSummary } from "../types.js";
-import {
-  BRANCH_SLUG_PATTERN,
-  extractSlugAfterPrefix,
-  stripBase,
-} from "./_member-history-shared.js";
+import { BRANCH_SLUG_PATTERN, extractSlugAfterPrefix, stripBase } from "../url-helpers.js";
 
 export const listCommitteesSchema = z.object({
   branch: z.string().describe("Branch slug (e.g. 'seattle-branch') or full branch URL"),

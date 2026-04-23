@@ -2,6 +2,10 @@ import type { CheerioAPI } from "cheerio";
 import type {
   ActivityDetail,
   ActivitySummary,
+  BadgeCategory,
+  BadgeDetail,
+  BadgeSummary,
+  BadgeType,
   CourseDetail,
   CourseSummary,
   EventDetail,
@@ -17,6 +21,7 @@ import type {
   TripReportDetail,
   TripReportSummary,
 } from "./types.js";
+import { BRANCH_SLUG_PATTERN } from "./url-helpers.js";
 
 const BASE_URL = "https://www.mountaineers.org";
 
@@ -283,6 +288,46 @@ export function parseTripReportResults(
       activity_type,
       trip_result,
       description: text($el, ".result-summary"),
+    });
+  });
+
+  return {
+    total_count: totalCount,
+    items,
+    page,
+    has_more: (page + 1) * 20 < totalCount,
+  };
+}
+
+function inferBadgeType(url: string): BadgeType {
+  // Parse pathname to avoid matching query strings or hashes that happen to
+  // contain a badge path segment. Falls back to raw string check if URL parsing
+  // fails (e.g. caller passed a bare path that the URL ctor doesn't recognize).
+  let path: string;
+  try {
+    path = new URL(url, BASE_URL).pathname;
+  } catch {
+    path = url;
+  }
+  if (path.includes("/membership/badges/award-badges/")) return "award";
+  if (path.includes("/membership/badges/instructor-badges/")) return "instructor";
+  if (path.includes("/membership/badges/leader-badges/")) return "leader";
+  return "other";
+}
+
+export function parseBadgeResults($: CheerioAPI, page: number): SearchResult<BadgeSummary> {
+  const totalCount = parseResultCount($);
+  const items: BadgeSummary[] = [];
+
+  $(".result-item").each((_i, el) => {
+    const $el = $(el);
+    const title = text($el, ".result-title a") ?? "";
+    const url = href($el, ".result-title a") ?? "";
+    if (!title || !url) return;
+    items.push({
+      title,
+      url,
+      badge_type: inferBadgeType(url),
     });
   });
 
@@ -922,4 +967,71 @@ export function parseEventDetail($: CheerioAPI, url: string): EventDetail {
   }
 
   return detail;
+}
+
+const BADGE_BODY_MAX_CHARS = 5000;
+const BADGE_CATEGORY_MAX_CHARS = 1000;
+// nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp -- BRANCH_SLUG_PATTERN is a literal constant
+const BADGE_BRANCH_SLUG_RE = new RegExp(
+  `/membership/badges/award-badges/(${BRANCH_SLUG_PATTERN})/`,
+);
+
+export function parseBadgeDetail($: CheerioAPI, url: string): BadgeDetail {
+  const title = $("h1.documentFirstHeading").first().text().trim() || $("h1").first().text().trim();
+  const description = $("p.documentDescription").first().text().trim() || null;
+  const badge_type = inferBadgeType(url);
+  const branchMatch = url.match(BADGE_BRANCH_SLUG_RE);
+  const branch_slug = badge_type === "award" && branchMatch ? branchMatch[1] : null;
+
+  const categories: BadgeCategory[] = [];
+  const $contentCore = $("#content-core");
+  if ($contentCore.length) {
+    $contentCore.find("h3").each((_i, h3) => {
+      const $h3 = $(h3);
+      const heading = $h3.text().trim().replace(/\s+/g, " ");
+      if (!heading.startsWith("Category ")) return;
+      const $siblings = $h3.nextUntil("h3");
+      const raw = $siblings
+        .map((_j, el) => $(el).text())
+        .get()
+        .join(" ")
+        .trim()
+        .replace(/\s+/g, " ");
+      const criteria =
+        raw.length > BADGE_CATEGORY_MAX_CHARS ? `${raw.slice(0, BADGE_CATEGORY_MAX_CHARS)}…` : raw;
+      categories.push({ name: heading, criteria });
+    });
+  }
+
+  let body_text: string | null = null;
+  if ($contentCore.length) {
+    const $clone = $contentCore.clone();
+    $clone.find("h1.documentFirstHeading, p.documentDescription, h2.kicker").remove();
+    // Strip the Category h3 sections and everything that follows each up to the
+    // next h3 — these are emitted separately as `categories[]`.
+    $clone.find("h3").each((_i, h3) => {
+      const $h3 = $(h3);
+      const heading = $h3.text().trim().replace(/\s+/g, " ");
+      if (!heading.startsWith("Category ")) return;
+      $h3.nextUntil("h3").remove();
+      $h3.remove();
+    });
+    const bodyText = $clone.text().trim().replace(/\s+/g, " ");
+    if (bodyText) {
+      body_text =
+        bodyText.length > BADGE_BODY_MAX_CHARS
+          ? `${bodyText.slice(0, BADGE_BODY_MAX_CHARS)}…`
+          : bodyText;
+    }
+  }
+
+  return {
+    title,
+    url,
+    description,
+    badge_type,
+    branch_slug,
+    body_text,
+    categories,
+  };
 }

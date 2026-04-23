@@ -5,6 +5,7 @@ import { MountaineersClient } from "./client.js";
 import { getActivity, getActivitySchema } from "./tools/get-activity.js";
 import { getActivityHistory, getActivityHistorySchema } from "./tools/get-activity-history.js";
 import { getActivityRoster, getActivityRosterSchema } from "./tools/get-activity-roster.js";
+import { getBadge, getBadgeSchema } from "./tools/get-badge.js";
 import { getCourse, getCourseSchema } from "./tools/get-course.js";
 import { getEvent, getEventSchema } from "./tools/get-event.js";
 import { getMemberActivities, getMemberActivitiesSchema } from "./tools/get-member-activities.js";
@@ -20,6 +21,7 @@ import { getTripReport, getTripReportSchema } from "./tools/get-trip-report.js";
 import { listBranches, listBranchesSchema } from "./tools/list-branches.js";
 import { listCommittees, listCommitteesSchema } from "./tools/list-committees.js";
 import { searchActivities, searchActivitiesSchema } from "./tools/search-activities.js";
+import { searchBadges, searchBadgesSchema } from "./tools/search-badges.js";
 import { searchCourses, searchCoursesSchema } from "./tools/search-courses.js";
 import { searchEvents, searchEventsSchema } from "./tools/search-events.js";
 import { searchMembers, searchMembersSchema } from "./tools/search-members.js";
@@ -143,6 +145,23 @@ server.tool(
 );
 
 server.tool(
+  "search_badges",
+  "Search the mountaineers.org badge catalog. Returns title, URL, and badge_type derived from the URL (one of: award, instructor, leader, other). Optional free-text query.",
+  searchBadgesSchema.shape,
+  async (input) => {
+    try {
+      const result = await searchBadges(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
   "get_activity",
   "Get detailed information about a specific activity by URL or slug.",
   getActivitySchema.shape,
@@ -217,6 +236,23 @@ server.tool(
   async (input) => {
     try {
       const result = await getEvent(client, input);
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
+
+server.tool(
+  "get_badge",
+  "Get detailed information about a specific mountaineers.org badge by URL: title, description, badge_type, branch_slug (for branch-scoped award badges), body text with criteria/instructions, and an optional categories array (for award badges with Category A/B/C/... requirements). Earners list is not exposed by the site and is not returned. Use search_badges to discover badge URLs; for the authenticated user's earned badges use get_my_badges.",
+  getBadgeSchema.shape,
+  async (input) => {
+    try {
+      const result = await getBadge(client, input);
       return { content: [{ type: "text", text: formatResult(result) }] };
     } catch (e) {
       return {
