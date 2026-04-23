@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.8.1...v1.9.0) (2026-04-23)
+
+
+### Features
+
+* **tools:** add get_version tool ([#69](https://github.com/dreamiurg/mountaineers-mcp/issues/69)) ([71c3424](https://github.com/dreamiurg/mountaineers-mcp/commit/71c342498dd711ef4cea7c4013a902b2e1ecc751))
+
 ## [1.8.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.8.0...v1.8.1) (2026-04-23)
 
 
