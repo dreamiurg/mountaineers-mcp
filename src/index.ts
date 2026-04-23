@@ -18,6 +18,7 @@ import { getMyCourses, getMyCoursesSchema } from "./tools/get-my-courses.js";
 import { getRoute, getRouteSchema } from "./tools/get-route.js";
 import { getRouteTripReports, getRouteTripReportsSchema } from "./tools/get-route-trip-reports.js";
 import { getTripReport, getTripReportSchema } from "./tools/get-trip-report.js";
+import { getVersion } from "./tools/get-version.js";
 import { listBranches, listBranchesSchema } from "./tools/list-branches.js";
 import { listCommittees, listCommitteesSchema } from "./tools/list-committees.js";
 import { searchActivities, searchActivitiesSchema } from "./tools/search-activities.js";
@@ -28,12 +29,13 @@ import { searchMembers, searchMembersSchema } from "./tools/search-members.js";
 import { searchRoutes, searchRoutesSchema } from "./tools/search-routes.js";
 import { searchTripReports, searchTripReportsSchema } from "./tools/search-trip-reports.js";
 import { whoami } from "./tools/whoami.js";
+import { SERVER_NAME, SERVER_VERSION } from "./version.js";
 
 const client = new MountaineersClient();
 
 const server = new McpServer({
-  name: "mountaineers",
-  version: "0.1.0",
+  name: SERVER_NAME,
+  version: SERVER_VERSION,
 });
 
 function formatResult(data: unknown): string {
@@ -294,6 +296,16 @@ server.tool(
         isError: true,
       };
     }
+  },
+);
+
+server.tool(
+  "get_version",
+  "Get the mountaineers-mcp server name and version. Useful for verifying which server build a client is connected to when debugging version-specific behavior.",
+  {},
+  async () => {
+    const result = getVersion();
+    return { content: [{ type: "text", text: formatResult(result) }] };
   },
 );
 
