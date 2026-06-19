@@ -35,16 +35,23 @@ export async function mintClearance(
     const userAgent = await page.evaluate(() => navigator.userAgent);
 
     await page.goto(LOGIN_URL, { waitUntil: "domcontentloaded" });
-    await page.waitForFunction(
-      () => !document.title.toLowerCase().includes("just a moment"),
-      undefined,
-      { timeout: CHALLENGE_TIMEOUT_MS },
-    );
 
-    const afterChallenge = await context.cookies();
-    if (!afterChallenge.some((c) => c.name === "cf_clearance")) {
+    // Cloudflare's managed challenge for a real headed browser usually resolves
+    // with no visible interstitial — the page title is never "just a moment" and
+    // the cf_clearance cookie is set a moment after the page renders. So gate on
+    // the cookie appearing, not on the title.
+    const deadline = Date.now() + CHALLENGE_TIMEOUT_MS;
+    let hasClearance = false;
+    while (Date.now() < deadline) {
+      if ((await context.cookies()).some((c) => c.name === "cf_clearance")) {
+        hasClearance = true;
+        break;
+      }
+      await page.waitForTimeout(500);
+    }
+    if (!hasClearance) {
       throw new Error(
-        "Challenge page cleared but no cf_clearance cookie was set (non-managed challenge?).",
+        `Cloudflare did not issue a cf_clearance cookie within ${CHALLENGE_TIMEOUT_MS / 1000}s.`,
       );
     }
 
@@ -54,7 +61,7 @@ export async function mintClearance(
     await page.fill("#__ac_password", password);
     await page.click('input[name="buttons.login"], button[name="buttons.login"]');
     await page.waitForFunction(
-      () => document.body.classList.contains("userrole-authenticated"),
+      () => document.body?.classList.contains("userrole-authenticated") ?? false,
       undefined,
       { timeout: LOGIN_TIMEOUT_MS },
     );
