@@ -98,4 +98,48 @@ describe("getMemberHistory", () => {
     await getMemberHistory(client, { member: "jane-doe" });
     expect(client.ensureClearance).not.toHaveBeenCalled();
   });
+
+  it("filters by activity_type when API returns array (regression #84)", async () => {
+    const items = [
+      {
+        uid: "1",
+        href: "/a/1",
+        title: "Baker Trip",
+        start: "2026-06-13",
+        category: "trip",
+        activity_type: ["Climbing"],
+      },
+      {
+        uid: "2",
+        href: "/a/2",
+        title: "Branch Event",
+        start: "2026-06-15",
+        category: "event",
+        activity_type: [],
+      },
+    ];
+    const client = createMockClient(items);
+
+    const result = await getMemberHistory(client, {
+      member: "jane-doe",
+      activity_type: "Climbing",
+      limit: 0,
+    });
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].title).toBe("Baker Trip");
+    expect(result.items[0].activity_type).toEqual(["Climbing"]);
+  });
+
+  it("does not crash when activity_type is empty array (regression #84)", async () => {
+    const items = [
+      { uid: "1", href: "/a/1", title: "Event", start: "2026-06-15", activity_type: [] },
+    ];
+    const client = createMockClient(items);
+
+    await expect(
+      getMemberHistory(client, { member: "jane-doe", activity_type: "Climbing" }),
+    ).resolves.not.toThrow();
+    const result = await getMemberHistory(client, { member: "jane-doe", limit: 0 });
+    expect(result.items[0].activity_type).toBeNull();
+  });
 });

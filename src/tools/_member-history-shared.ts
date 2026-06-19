@@ -20,8 +20,41 @@ interface HistoryItemJson {
   start?: string;
   result?: string;
   trip_results?: string;
-  activity_type?: string;
+  activity_type?: string | string[];
   leader?: { name?: string; href?: string } | string;
+}
+
+/**
+ * Normalize the activity_type field from the JSON response.
+ * The API may return a string, an array of strings, or omit the field entirely.
+ * An empty array is treated as absent (null) so callers can rely on null === no type.
+ */
+function normalizeActivityType(raw: string | string[] | undefined): string[] | null {
+  if (Array.isArray(raw)) {
+    return raw.length > 0 ? raw : null;
+  }
+  return raw ? [raw] : null;
+}
+
+function mapHistoryItem(item: HistoryItemJson): MyActivity {
+  const itemHref = item.href || "";
+  const leaderName =
+    typeof item.leader === "object" ? item.leader?.name || null : item.leader || null;
+  return {
+    uid: item.uid || uidFromUrl(itemHref),
+    title: item.title || "",
+    url: itemHref.startsWith("http") ? itemHref : `https://www.mountaineers.org${itemHref}`,
+    category: item.category || null,
+    activity_type: normalizeActivityType(item.activity_type),
+    start_date: item.start || null,
+    leader: leaderName,
+    is_leader: false,
+    position: null,
+    status: null,
+    result: item.result || item.trip_results || null,
+    difficulty: null,
+    leader_rating: null,
+  };
 }
 
 export async function fetchMemberHistory(
@@ -46,26 +79,7 @@ export async function fetchMemberHistory(
     items ??= [];
   }
 
-  let activities: MyActivity[] = items.map((item) => {
-    const itemHref = item.href || "";
-    const leaderName =
-      typeof item.leader === "object" ? item.leader?.name || null : item.leader || null;
-    return {
-      uid: item.uid || uidFromUrl(itemHref),
-      title: item.title || "",
-      url: itemHref.startsWith("http") ? itemHref : `https://www.mountaineers.org${itemHref}`,
-      category: item.category || null,
-      activity_type: item.activity_type || null,
-      start_date: item.start || null,
-      leader: leaderName,
-      is_leader: false,
-      position: null,
-      status: null,
-      result: item.result || item.trip_results || null,
-      difficulty: null,
-      leader_rating: null,
-    };
-  });
+  let activities: MyActivity[] = items.map(mapHistoryItem);
 
   activities.sort((a, b) => {
     if (!a.start_date && !b.start_date) return 0;
@@ -83,9 +97,9 @@ export async function fetchMemberHistory(
     activities = activities.filter((a) => a.result?.toLowerCase() === result.toLowerCase());
   }
   if (filters.activity_type) {
-    const activityType = filters.activity_type;
-    activities = activities.filter(
-      (a) => a.activity_type?.toLowerCase() === activityType.toLowerCase(),
+    const activityType = filters.activity_type.toLowerCase();
+    activities = activities.filter((a) =>
+      a.activity_type?.some((t) => t.toLowerCase() === activityType),
     );
   }
   if (filters.date_from) {

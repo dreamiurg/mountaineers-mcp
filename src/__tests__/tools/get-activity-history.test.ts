@@ -56,7 +56,7 @@ describe("getActivityHistory", () => {
     expect(result.items[0].uid).toBe("abc123");
     expect(result.items[0].start_date).toBe("2025-06-15");
     expect(result.items[0].result).toBe("Successful");
-    expect(result.items[0].activity_type).toBe("Trail Running");
+    expect(result.items[0].activity_type).toEqual(["Trail Running"]);
   });
 
   it("handles leader as object with name", async () => {
@@ -127,7 +127,7 @@ describe("getActivityHistory", () => {
     expect(result.items[0].title).toBe("Good");
   });
 
-  it("filters by activity_type", async () => {
+  it("filters by activity_type (scalar string normalized to array)", async () => {
     const items = [
       { uid: "1", href: "/a/1", title: "Hike", start: "2025-01-01", activity_type: "Day Hiking" },
       { uid: "2", href: "/a/2", title: "Climb", start: "2025-01-01", activity_type: "Climbing" },
@@ -137,6 +137,53 @@ describe("getActivityHistory", () => {
     const result = await getActivityHistory(client, { activity_type: "Climbing", limit: 0 });
     expect(result.items).toHaveLength(1);
     expect(result.items[0].title).toBe("Climb");
+  });
+
+  it("filters by activity_type when API returns array (regression #84)", async () => {
+    const items = [
+      {
+        uid: "1",
+        href: "/a/1",
+        title: "Baker Trip",
+        start: "2026-06-13",
+        activity_type: ["Climbing"],
+      },
+      {
+        uid: "2",
+        href: "/a/2",
+        title: "Trail Day",
+        start: "2026-06-14",
+        activity_type: ["Day Hiking"],
+      },
+      {
+        uid: "3",
+        href: "/a/3",
+        title: "Branch Event",
+        start: "2026-06-15",
+        activity_type: [],
+      },
+    ];
+    const client = createMockClient(items);
+
+    const result = await getActivityHistory(client, { activity_type: "climbing", limit: 0 });
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].title).toBe("Baker Trip");
+    expect(result.items[0].activity_type).toEqual(["Climbing"]);
+  });
+
+  it("does not crash when activity_type is empty array (regression #84)", async () => {
+    const items = [
+      { uid: "1", href: "/a/1", title: "Event", start: "2026-06-15", activity_type: [] },
+    ];
+    // Filter with non-matching type must not throw and must exclude the item
+    const client = createMockClient(items);
+    const result = await getActivityHistory(client, { activity_type: "Climbing", limit: 0 });
+    expect(result.items).toHaveLength(0);
+
+    // Empty array is normalized to null
+    const client2 = createMockClient(items);
+    const result2 = await getActivityHistory(client2, { limit: 0 });
+    expect(result2.items[0].activity_type).toBeNull();
   });
 
   it("filters by date range", async () => {

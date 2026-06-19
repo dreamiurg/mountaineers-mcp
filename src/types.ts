@@ -79,7 +79,7 @@ export interface MyActivity {
   title: string;
   url: string;
   category: string | null;
-  activity_type: string | null;
+  activity_type: string[] | null;
   start_date: string | null;
   leader: string | null;
   is_leader: boolean;
