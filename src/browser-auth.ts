@@ -39,13 +39,19 @@ async function launchContext(): Promise<BrowserContext> {
  */
 async function waitForClearanceCookie(context: BrowserContext, page: Page): Promise<void> {
   const deadline = Date.now() + CHALLENGE_TIMEOUT_MS;
-  while (Date.now() < deadline) {
-    if ((await context.cookies()).some((c) => c.name === "cf_clearance")) return;
+  const hasClearance = async () => (await context.cookies()).some((c) => c.name === "cf_clearance");
+  // Re-check after each sleep (not just at the top) so a cookie that lands during
+  // the final wait is caught rather than racing the timeout throw.
+  let found = await hasClearance();
+  while (!found && Date.now() < deadline) {
     await page.waitForTimeout(250);
+    found = await hasClearance();
   }
-  throw new Error(
-    `Cloudflare did not issue a cf_clearance cookie within ${CHALLENGE_TIMEOUT_MS / 1000}s. Try closing other Chrome windows and retrying.`,
-  );
+  if (!found) {
+    throw new Error(
+      `Cloudflare did not issue a cf_clearance cookie within ${CHALLENGE_TIMEOUT_MS / 1000}s. Try closing other Chrome windows and retrying.`,
+    );
+  }
 }
 
 /**

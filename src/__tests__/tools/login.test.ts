@@ -18,8 +18,14 @@ afterEach(() => vi.clearAllMocks());
 describe("login tool", () => {
   it("mints clearance interactively (no creds), saves it, and reports the cf_clearance expiry", async () => {
     const cookies = [
-      { name: "cf_clearance", value: "X", expires: 1893456000 },
-      { name: "__ac", value: "Y", expires: -1 },
+      {
+        name: "cf_clearance",
+        value: "X",
+        expires: 1893456000,
+        domain: ".mountaineers.org",
+        path: "/",
+      },
+      { name: "__ac", value: "Y", expires: -1, domain: "www.mountaineers.org", path: "/" },
     ];
     vi.mocked(browserAuth.mintClearance).mockResolvedValue({ userAgent: "UA", cookies });
 
