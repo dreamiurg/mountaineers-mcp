@@ -4,6 +4,28 @@
 **Status:** Approved (design)
 **Branch:** `feat/cloudflare-browser-auth`
 
+## Post-implementation corrections (verified live 2026-06-18)
+
+Live testing against the real site invalidated two assumptions in the original
+design below. What actually shipped:
+
+1. **`cf_clearance` is bound to the client's TLS/HTTP-2 fingerprint, not just
+   cookie + UA + IP.** Replaying the valid cookie through Node `fetch` (or
+   `curl`) still returns `403 cf-mitigated:challenge`; only a browser-fingerprint
+   client passes. **The MCP therefore routes requests through `impit`**
+   (`browser: "chrome"`, a Rust-backed TLS-impersonating fetch) instead of
+   `fetch`. `impit` is a **runtime dependency**. The client injects only the
+   `Cookie` header and lets `impit` own the `User-Agent` (a pinned UA that
+   mismatches impit's TLS can re-trip CF). Verified end-to-end: `whoami` returns
+   the authenticated user.
+2. **CF's managed challenge for a headed browser resolves with no visible
+   interstitial** — the page title is never "just a moment" and `cf_clearance`
+   is set ~1–2s after load. So `mintClearance` **polls for the `cf_clearance`
+   cookie** to appear (not the title), and guards `document.body` during the
+   post-submit navigation.
+
+The sections below are the original pre-implementation design, kept for history.
+
 ## Problem
 
 mountaineers.org is now behind a Cloudflare managed challenge. Every endpoint
