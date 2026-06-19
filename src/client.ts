@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { Impit, type ImpitResponse } from "impit";
 import { type Clearance, loadClearance } from "./clearance.js";
 
 const BASE_URL = "https://www.mountaineers.org";
@@ -7,6 +8,10 @@ const RATE_LIMIT_MS = 500;
 export class MountaineersClient {
   private clearance: Clearance | null;
   private lastRequestTime = 0;
+  // Cloudflare binds cf_clearance to the client's TLS/HTTP-2 fingerprint, so a
+  // plain `fetch`/`curl` is rejected even with a valid cookie. Impit impersonates
+  // Chrome's TLS+headers, which lets the replayed cf_clearance pass the challenge.
+  private readonly impit = new Impit({ browser: "chrome" });
 
   constructor() {
     this.clearance = loadClearance();
@@ -31,24 +36,25 @@ export class MountaineersClient {
     return this.clearance!.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
   }
 
-  private isChallenge(response: Response): boolean {
+  private isChallenge(response: ImpitResponse): boolean {
     return response.status === 403 && response.headers.get("cf-mitigated") === "challenge";
   }
 
   async fetchRaw(
     url: string,
     options: { headers?: Record<string, string> } = {},
-  ): Promise<Response> {
+  ): Promise<ImpitResponse> {
     this.ensureClearance();
 
     const fullUrl = url.startsWith("http") ? url : `${BASE_URL}${url}`;
+    // Only inject cookies; let Impit own the User-Agent so it stays consistent
+    // with the Chrome TLS fingerprint it presents (a mismatched UA can re-trip CF).
     const send = () => {
       const headers: Record<string, string> = {
-        "User-Agent": this.clearance!.userAgent,
         Cookie: this.cookieHeader(),
         ...options.headers,
       };
-      return fetch(fullUrl, { headers, redirect: "follow" });
+      return this.impit.fetch(fullUrl, { headers, redirect: "follow" });
     };
 
     await this.rateLimit();

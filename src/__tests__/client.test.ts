@@ -2,6 +2,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as clearance from "../clearance.js";
 import { MountaineersClient } from "../client.js";
 
+// The client makes requests through an Impit instance (browser-TLS impersonation),
+// not global fetch. Mock the module so `new Impit()` exposes a controllable fetch.
+const { impitFetch } = vi.hoisted(() => ({ impitFetch: vi.fn() }));
+vi.mock("impit", () => ({
+  Impit: class {
+    fetch = impitFetch;
+  },
+}));
+
 vi.mock("../clearance.js", () => ({
   loadClearance: vi.fn(),
 }));
@@ -23,50 +32,50 @@ function res(
   return new Response(body, { status, headers });
 }
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  impitFetch.mockReset();
+  vi.mocked(clearance.loadClearance).mockReset();
+});
 
 describe("MountaineersClient with a valid cache", () => {
   beforeEach(() => {
     vi.mocked(clearance.loadClearance).mockReturnValue(CACHE);
   });
 
-  it("attaches all three cookies and the pinned UA to every request", async () => {
-    const fetchMock = vi.spyOn(global, "fetch").mockResolvedValue(res(200));
+  it("attaches all three cookies to every request and lets Impit own the UA", async () => {
+    impitFetch.mockResolvedValue(res(200));
     const client = new MountaineersClient();
     await client.fetchRaw("/activities/");
-    const [, init] = fetchMock.mock.calls[0];
+    const [, init] = impitFetch.mock.calls[0];
     const headers = new Headers(init?.headers as HeadersInit);
-    expect(headers.get("User-Agent")).toBe("Mozilla/5.0 (Test) Chrome/126");
     expect(headers.get("Cookie")).toContain("cf_clearance=CF");
     expect(headers.get("Cookie")).toContain("__cf_bm=BM");
     expect(headers.get("Cookie")).toContain("__ac=AC");
+    // We must NOT pin a User-Agent — Impit sets one matching its TLS fingerprint.
+    expect(headers.get("User-Agent")).toBeNull();
   });
 
   it("reloads the cache once and retries on 403 cf-mitigated:challenge, then throws when still challenged", async () => {
-    const fetchMock = vi
-      .spyOn(global, "fetch")
-      .mockImplementation(() => Promise.resolve(res(403, { "cf-mitigated": "challenge" })));
+    impitFetch.mockImplementation(() => Promise.resolve(res(403, { "cf-mitigated": "challenge" })));
     const loadSpy = vi.mocked(clearance.loadClearance);
     const client = new MountaineersClient();
     loadSpy.mockClear();
     await expect(client.fetchRaw("/activities/")).rejects.toThrow(/clearance expired/);
     expect(loadSpy).toHaveBeenCalledTimes(1); // one reload during retry
-    expect(fetchMock).toHaveBeenCalledTimes(2); // original + one retry
+    expect(impitFetch).toHaveBeenCalledTimes(2); // original + one retry
   });
 
   it("does not retry when the reloaded cache is null", async () => {
-    const fetchMock = vi
-      .spyOn(global, "fetch")
-      .mockImplementation(() => Promise.resolve(res(403, { "cf-mitigated": "challenge" })));
+    impitFetch.mockImplementation(() => Promise.resolve(res(403, { "cf-mitigated": "challenge" })));
     const loadSpy = vi.mocked(clearance.loadClearance);
     const client = new MountaineersClient();
     loadSpy.mockReturnValue(null); // cache deleted mid-session
     await expect(client.fetchRaw("/x")).rejects.toThrow(/No Cloudflare clearance/);
-    expect(fetchMock).toHaveBeenCalledTimes(1); // no second request
+    expect(impitFetch).toHaveBeenCalledTimes(1); // no second request
   });
 
   it("returns a non-CF 403 response unchanged (no CF error)", async () => {
-    vi.spyOn(global, "fetch").mockResolvedValue(res(403));
+    impitFetch.mockResolvedValue(res(403));
     const client = new MountaineersClient();
     const r = await client.fetchRaw("/x");
     expect(r.status).toBe(403);
