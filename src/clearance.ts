@@ -50,6 +50,7 @@ export function loadClearance(now: number = Date.now() / 1000): Clearance | null
 export function saveClearance(userAgent: string, cookies: ClearanceCookie[]): void {
   const file = cachePath();
   const payload = { user_agent: userAgent, cookies, saved_at: Date.now() / 1000 };
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.writeFileSync(file, JSON.stringify(payload));
+  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
+  fs.writeFileSync(file, JSON.stringify(payload), { mode: 0o600 });
+  fs.chmodSync(file, 0o600);
 }

@@ -45,7 +45,7 @@ describe("MountaineersClient with a valid cache", () => {
   it("reloads the cache once and retries on 403 cf-mitigated:challenge, then throws when still challenged", async () => {
     const fetchMock = vi
       .spyOn(global, "fetch")
-      .mockResolvedValue(res(403, { "cf-mitigated": "challenge" }));
+      .mockImplementation(() => Promise.resolve(res(403, { "cf-mitigated": "challenge" })));
     const loadSpy = vi.mocked(clearance.loadClearance);
     const client = new MountaineersClient();
     loadSpy.mockClear();
@@ -57,7 +57,7 @@ describe("MountaineersClient with a valid cache", () => {
   it("does not retry when the reloaded cache is null", async () => {
     const fetchMock = vi
       .spyOn(global, "fetch")
-      .mockResolvedValue(res(403, { "cf-mitigated": "challenge" }));
+      .mockImplementation(() => Promise.resolve(res(403, { "cf-mitigated": "challenge" })));
     const loadSpy = vi.mocked(clearance.loadClearance);
     const client = new MountaineersClient();
     loadSpy.mockReturnValue(null); // cache deleted mid-session
