@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.11.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.10.0...v1.11.0) (2026-06-19)
+
+
+### Features
+
+* add login MCP tool for self-service browser auth ([#85](https://github.com/dreamiurg/mountaineers-mcp/issues/85)) ([2b5365d](https://github.com/dreamiurg/mountaineers-mcp/commit/2b5365da1bca465699a5a2be5a742bfb69f82e1f))
+
+
+### Bug Fixes
+
+* handle array activity_type in member/activity history filter ([#84](https://github.com/dreamiurg/mountaineers-mcp/issues/84)) ([#86](https://github.com/dreamiurg/mountaineers-mcp/issues/86)) ([b775179](https://github.com/dreamiurg/mountaineers-mcp/commit/b7751792db414155fd3fb286ae2dda0e8f5130f9))
+
 ## [1.10.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.9.0...v1.10.0) (2026-06-19)
 
 
