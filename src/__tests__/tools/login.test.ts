@@ -30,7 +30,7 @@ describe("login tool", () => {
     expect(browserAuth.mintClearance).toHaveBeenCalledTimes(1);
     expect(clearance.saveClearance).toHaveBeenCalledWith("UA", cookies);
     expect(result.cache_path).toBe("/tmp/mtn/clearance.json");
-    expect(result.expires).toBe(new Date(1893456000 * 1000).toISOString());
+    expect(result.expires).toBe(clearance.formatCookieExpiry(1893456000));
   });
 
   it("reports a session expiry when cf_clearance has no positive expiry", async () => {

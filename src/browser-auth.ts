@@ -115,7 +115,16 @@ export async function mintClearance(
     await waitForClearanceCookie(context, page);
     const userAgent = await page.evaluate(() => navigator.userAgent);
     await completeLogin(page, creds);
-    return { userAgent, cookies: await harvestCookies(context) };
+    const cookies = await harvestCookies(context);
+    // userrole-authenticated should imply a session cookie, but guard against a
+    // degenerate harvest: without __ac, loadClearance would reject the cache and
+    // every auth tool would silently fail despite an apparently successful login.
+    if (!cookies.some((c) => c.name === "__ac")) {
+      throw new Error(
+        "Signed in but no session cookie (__ac) was issued. Try deleting the Chrome profile and running login again.",
+      );
+    }
+    return { userAgent, cookies };
   } finally {
     await context.close();
   }

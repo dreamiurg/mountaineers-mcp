@@ -333,7 +333,7 @@ server.tool(
 
 server.tool(
   "whoami",
-  "Get the currently logged-in user's name, slug, and profile URL. Requires a valid Cloudflare clearance cache (run the `login` tool first, or `npm run login` from a checkout).",
+  "Get the currently logged-in user's name, slug, and profile URL. Requires a valid Cloudflare clearance cache — run the `login` tool first.",
   {},
   async () => {
     try {
