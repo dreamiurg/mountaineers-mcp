@@ -45,10 +45,8 @@ function createMockClient(activitiesHtml = makeMemberActivitiesHtml([])): Mounta
     fetchJson: vi.fn(),
     fetchRaw: vi.fn(),
     fetchRosterTab: vi.fn(),
-    ensureLoggedIn: vi.fn(),
+    ensureClearance: vi.fn(),
     baseUrl: "https://www.mountaineers.org",
-    isLoggedIn: true,
-    hasCredentials: true,
   } as unknown as MountaineersClient;
 }
 
@@ -99,17 +97,13 @@ describe("getMemberActivities", () => {
     it("accepts a bare slug", async () => {
       const client = createMockClient();
       await getMemberActivities(client, { member: "jane-doe" });
-      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-activities", {
-        authenticated: true,
-      });
+      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-activities");
     });
 
     it("extracts slug from a /members/{slug} path", async () => {
       const client = createMockClient();
       await getMemberActivities(client, { member: "/members/jane-doe" });
-      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-activities", {
-        authenticated: true,
-      });
+      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-activities");
     });
 
     it("extracts slug from a full profile URL", async () => {
@@ -117,9 +111,7 @@ describe("getMemberActivities", () => {
       await getMemberActivities(client, {
         member: "https://www.mountaineers.org/members/jane-doe",
       });
-      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-activities", {
-        authenticated: true,
-      });
+      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-activities");
     });
 
     it("strips a trailing slash from a profile URL", async () => {
@@ -127,9 +119,7 @@ describe("getMemberActivities", () => {
       await getMemberActivities(client, {
         member: "https://www.mountaineers.org/members/jane-doe/",
       });
-      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-activities", {
-        authenticated: true,
-      });
+      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-activities");
     });
   });
 
@@ -230,10 +220,10 @@ describe("getMemberActivities", () => {
   });
 
   describe("API call", () => {
-    it("does NOT call whoami / ensureLoggedIn (auth is handled by fetchHtml)", async () => {
+    it("does NOT call ensureClearance directly (clearance is handled by fetchHtml)", async () => {
       const client = createMockClient();
       await getMemberActivities(client, { member: "jane-doe" });
-      expect(client.ensureLoggedIn).not.toHaveBeenCalled();
+      expect(client.ensureClearance).not.toHaveBeenCalled();
     });
   });
 });

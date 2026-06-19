@@ -24,10 +24,8 @@ function createMockClient(
     fetchJson: vi.fn().mockResolvedValue(historyItems),
     fetchRaw: vi.fn(),
     fetchRosterTab: vi.fn(),
-    ensureLoggedIn: vi.fn(),
+    ensureClearance: vi.fn(),
     baseUrl: "https://www.mountaineers.org",
-    isLoggedIn: true,
-    hasCredentials: true,
   } as unknown as MountaineersClient;
 }
 
@@ -35,10 +33,7 @@ describe("getActivityHistory", () => {
   it("fetches history JSON for the logged-in user", async () => {
     const client = createMockClient([]);
     await getActivityHistory(client, {});
-    expect(client.fetchJson).toHaveBeenCalledWith(
-      "/members/jane-doe/member-activity-history.json",
-      { authenticated: true },
-    );
+    expect(client.fetchJson).toHaveBeenCalledWith("/members/jane-doe/member-activity-history.json");
   });
 
   it("parses activity items from JSON array", async () => {

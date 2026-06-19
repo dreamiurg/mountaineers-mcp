@@ -10,10 +10,8 @@ function createMockClient(): MountaineersClient {
     fetchJson: vi.fn(),
     fetchRaw: vi.fn(),
     fetchRosterTab: vi.fn(),
-    ensureLoggedIn: vi.fn(),
+    ensureClearance: vi.fn(),
     baseUrl: "https://www.mountaineers.org",
-    isLoggedIn: true,
-    hasCredentials: true,
   } as unknown as MountaineersClient;
 }
 
@@ -43,7 +41,7 @@ describe("whoami", () => {
     });
   });
 
-  it("calls ensureLoggedIn before fetching", async () => {
+  it("fetches homepage", async () => {
     const homepage = cheerio.load(
       `<html><body><a href="/members/test-user">My Profile</a></body></html>`,
     );
@@ -55,22 +53,7 @@ describe("whoami", () => {
       .mockResolvedValueOnce(profilePage);
 
     await whoami(client);
-    expect(client.ensureLoggedIn).toHaveBeenCalled();
-  });
-
-  it("fetches homepage with authenticated=true", async () => {
-    const homepage = cheerio.load(
-      `<html><body><a href="/members/test-user">My Profile</a></body></html>`,
-    );
-    const profilePage = cheerio.load(
-      `<html><body><h1>Profile</h1><h1>Test User</h1></body></html>`,
-    );
-    (client.fetchHtml as ReturnType<typeof vi.fn>)
-      .mockResolvedValueOnce(homepage)
-      .mockResolvedValueOnce(profilePage);
-
-    await whoami(client);
-    expect(client.fetchHtml).toHaveBeenCalledWith("/", { authenticated: true });
+    expect(client.fetchHtml).toHaveBeenCalledWith("/");
   });
 
   it("fetches profile page with the extracted slug", async () => {
@@ -85,7 +68,7 @@ describe("whoami", () => {
       .mockResolvedValueOnce(profilePage);
 
     await whoami(client);
-    expect(client.fetchHtml).toHaveBeenCalledWith("/members/alice-wonder", { authenticated: true });
+    expect(client.fetchHtml).toHaveBeenCalledWith("/members/alice-wonder");
   });
 
   it("handles absolute profile URL", async () => {

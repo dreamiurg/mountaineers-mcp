@@ -42,10 +42,8 @@ function createMockClient(coursesHtml: string = makeMemberCoursesHtml([])): Moun
     fetchJson: vi.fn(),
     fetchRaw: vi.fn(),
     fetchRosterTab: vi.fn(),
-    ensureLoggedIn: vi.fn(),
+    ensureClearance: vi.fn(),
     baseUrl: "https://www.mountaineers.org",
-    isLoggedIn: true,
-    hasCredentials: true,
   } as unknown as MountaineersClient;
 }
 
@@ -68,9 +66,7 @@ describe("getMemberCourses", () => {
       expect(result.items).toHaveLength(1);
       expect(result.items[0].title).toBe("Intermediate Glacier Climbing - Everett - 2026");
       expect(result.items[0].enrolled_date).toBe("2026-01-19");
-      expect(client.fetchHtml).toHaveBeenCalledWith("/members/stefanie-schiller/member-courses", {
-        authenticated: true,
-      });
+      expect(client.fetchHtml).toHaveBeenCalledWith("/members/stefanie-schiller/member-courses");
     });
 
     it("returns empty items when the member has no courses", async () => {
@@ -87,17 +83,13 @@ describe("getMemberCourses", () => {
       await getMemberCourses(client, {
         member: "https://www.mountaineers.org/members/stefanie-schiller/",
       });
-      expect(client.fetchHtml).toHaveBeenCalledWith("/members/stefanie-schiller/member-courses", {
-        authenticated: true,
-      });
+      expect(client.fetchHtml).toHaveBeenCalledWith("/members/stefanie-schiller/member-courses");
     });
 
     it("normalizes a /members/{slug} path to a bare slug", async () => {
       const client = createMockClient();
       await getMemberCourses(client, { member: "/members/jane-doe" });
-      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-courses", {
-        authenticated: true,
-      });
+      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-courses");
     });
   });
 
@@ -205,10 +197,10 @@ describe("getMemberCourses", () => {
   });
 
   describe("API call", () => {
-    it("does NOT call ensureLoggedIn (auth is handled by fetchHtml)", async () => {
+    it("does NOT call ensureClearance directly (clearance is handled by fetchHtml)", async () => {
       const client = createMockClient();
       await getMemberCourses(client, { member: "jane-doe" });
-      expect(client.ensureLoggedIn).not.toHaveBeenCalled();
+      expect(client.ensureClearance).not.toHaveBeenCalled();
     });
   });
 });

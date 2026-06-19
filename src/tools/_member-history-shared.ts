@@ -31,7 +31,6 @@ export async function fetchMemberHistory(
 ): Promise<ListResult<MyActivity>> {
   const raw = await client.fetchJson<HistoryItemJson[] | Record<string, unknown>>(
     `/members/${slug}/member-activity-history.json`,
-    { authenticated: true },
   );
 
   let items: HistoryItemJson[];

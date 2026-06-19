@@ -7,8 +7,7 @@ export interface WhoamiResult {
 }
 
 export async function whoami(client: MountaineersClient): Promise<WhoamiResult> {
-  await client.ensureLoggedIn();
-  const $ = await client.fetchHtml("/", { authenticated: true });
+  const $ = await client.fetchHtml("/");
 
   // Find "My Profile" link — the exact text match for the profile root URL
   let foundUrl: string | null = null;
@@ -33,9 +32,7 @@ export async function whoami(client: MountaineersClient): Promise<WhoamiResult> 
 
   // Fetch profile page to get actual display name
   let name: string | null = null;
-  const $profile = await client.fetchHtml(`/members/${slug}`, {
-    authenticated: true,
-  });
+  const $profile = await client.fetchHtml(`/members/${slug}`);
   // Profile page has two h1s: "Profile" and the actual name
   $profile("h1").each((_i, el) => {
     const t = $profile(el).text().trim();
