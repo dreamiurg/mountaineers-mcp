@@ -13,11 +13,7 @@
     "!dist/login.js",
     "!dist/login.js.map",
     "!dist/login.d.ts",
-    "!dist/login.d.ts.map",
-    "!dist/browser-auth.js",
-    "!dist/browser-auth.js.map",
-    "!dist/browser-auth.d.ts",
-    "!dist/browser-auth.d.ts.map"
+    "!dist/login.d.ts.map"
   ],
   "engines": {
     "node": ">=18"
@@ -55,6 +51,7 @@
     "@modelcontextprotocol/sdk": "^1.12.1",
     "cheerio": "^1.0.0",
     "impit": "^0.14.1",
+    "patchright": "^1.61.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
@@ -62,7 +59,6 @@
     "@biomejs/biome": "^2.3.14",
     "@types/node": "^25.2.1",
     "@vitest/coverage-v8": "^4.0.18",
-    "patchright": "^1.61.0",
     "tsx": "^4.19.0",
     "typescript": "^6.0.3",
     "vitest": "^4.0.18"

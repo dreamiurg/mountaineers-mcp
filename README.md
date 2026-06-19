@@ -39,7 +39,7 @@ The AI reads the Mountaineers website, understands the results, and gives you a 
 ## Setup
 
 > [!IMPORTANT]
-> **A one-time login is required for *all* tools, including public search.** mountaineers.org is now behind Cloudflare, which blocks plain HTTP clients — so the server needs a Cloudflare clearance cookie minted by `npm run login` from a local checkout (it opens a real browser once). Do the [Authentication](#authentication) step first; then set up your AI app below. Your mountaineers.org credentials are used only by `npm run login` — **do not** put them in your AI app's config; the server reads the cached cookie, not env vars.
+> **A one-time login is required for *all* tools, including public search.** mountaineers.org is behind Cloudflare, which blocks plain HTTP clients. After installing the server (below), just ask your assistant to **run the `login` tool** — a Chrome window opens, you sign in once on mountaineers.org, and the server caches the clearance + session cookies. Your password is typed into the real site, never into the chat or any config. See [Authentication](#authentication) for details and the requirements (desktop with Google Chrome).
 
 Follow the instructions for your AI app below.
 
@@ -48,7 +48,7 @@ Follow the instructions for your AI app below.
 1. Download `mountaineers-mcp-X.Y.Z.mcpb` from the [latest release](https://github.com/dreamiurg/mountaineers-mcp/releases/latest)
 2. Open Claude Desktop → **Settings → Extensions → Install Extension**
 3. Select the downloaded `.mcpb` file
-4. Complete the one-time [Authentication](#authentication) step (`npm run login` from a checkout) — required before any tool will work, since the bundled server reads the cached Cloudflare clearance cookie
+4. Ask your assistant to run the **`login`** tool (one time) — a Chrome window opens, you sign in, and authentication is cached. Required before any other tool works. See [Authentication](#authentication).
 
 <p align="center">
   <img src="assets/claude-desktop-courses.png" width="75%" alt="Course search in Claude Desktop">
@@ -60,7 +60,7 @@ Follow the instructions for your AI app below.
 
 
 
-That installs the server itself with no Node.js setup -- but you still need to run the one-time [Authentication](#authentication) step (which does require Node.js and a checkout) before any tool works.
+That's it -- no Node.js setup required. Just run the one-time [Authentication](#authentication) step (the `login` tool) before using other tools.
 
 <details>
 <summary>Manual setup (alternative)</summary>
@@ -83,7 +83,7 @@ Requires [Node.js](https://nodejs.org) 18+.
 
 3. **Quit and reopen** Claude Desktop (not just close the window -- fully quit)
 
-Then complete the [Authentication](#authentication) step. Don't add `MOUNTAINEERS_USERNAME`/`MOUNTAINEERS_PASSWORD` to this config — the server reads the cached Cloudflare clearance cookie, not env vars; credentials are used only by `npm run login`.
+Then run the [Authentication](#authentication) step (the `login` tool). Don't add `MOUNTAINEERS_USERNAME`/`MOUNTAINEERS_PASSWORD` to this config — the server reads the cached cookie, not env vars.
 </details>
 
 ### ChatGPT Desktop
@@ -113,7 +113,7 @@ Or add to your `.mcp.json`:
 }
 ```
 
-Then complete the [Authentication](#authentication) step (credentials go to `npm run login`, not this config).
+Then run the [Authentication](#authentication) step (the `login` tool).
 
 ### Codex CLI
 
@@ -125,7 +125,7 @@ command = "npx"
 args = ["-y", "mountaineers-mcp"]
 ```
 
-Then complete the [Authentication](#authentication) step (credentials go to `npm run login`, not this config).
+Then run the [Authentication](#authentication) step (the `login` tool).
 
 Or use the CLI:
 
@@ -135,7 +135,21 @@ codex mcp add mountaineers -- npx -y mountaineers-mcp
 
 ## Authentication
 
-Mountaineers.org is protected by Cloudflare, which blocks plain HTTP clients — so **every** tool (public search included) needs a valid Cloudflare clearance cookie, plus a session cookie for account tools. The server doesn't log in itself; it replays cookies minted by the `login` command. Run it once from a local checkout:
+Mountaineers.org is behind Cloudflare, which blocks plain HTTP clients — so **every** tool (public search included) needs a valid Cloudflare clearance cookie, plus a session cookie for account tools. The server doesn't log in itself; it replays cookies you mint once with a real browser.
+
+### Recommended: the `login` tool
+
+Just ask your assistant to run the **`login`** tool (e.g. "log in to mountaineers"). A Chrome window opens to the mountaineers.org sign-in page; **you** complete the login there (your password goes to the site, never to the chat, the server, or any config). The server then caches the cookies and every other tool works. If the browser is already signed in from a previous run, it finishes instantly.
+
+The cookies are saved to `~/.cache/mountaineers-mcp/clearance.json` (or under `$XDG_CACHE_HOME`), owner-readable only. The server reads the cache on startup and re-reads it automatically if the clearance expires mid-session — so re-running `login` takes effect without a restart.
+
+**Requirements:** a desktop with **Google Chrome** installed and a visible display. (Headless servers can't show the sign-in window.)
+
+**When to re-run:** Cloudflare clearance eventually expires (lifetime is set by Cloudflare and varies). When a tool reports the clearance expired, run `login` again.
+
+### Alternative: `npm run login` (from a checkout)
+
+For scripted/automated setups you can mint the cache from a local checkout, auto-filling credentials from the environment:
 
 ```bash
 git clone https://github.com/dreamiurg/mountaineers-mcp.git
@@ -144,19 +158,17 @@ npm install
 MOUNTAINEERS_USERNAME=your-username MOUNTAINEERS_PASSWORD=your-password npm run login
 ```
 
-This opens a Chromium browser window, navigates to mountaineers.org, solves the Cloudflare challenge automatically, logs in with your credentials, and saves the resulting cookies to a local cache file (`~/.cache/mountaineers-mcp/clearance.json`, or under `$XDG_CACHE_HOME` if set). The MCP server reads the cache on startup, and re-reads it automatically if the clearance expires mid-session — so re-running login takes effect without restarting the server.
-
-**When to re-run:** Cloudflare clearance cookies eventually expire (the exact lifetime is set by Cloudflare and varies). When tools that require login start returning "Cloudflare clearance expired", run `npm run login` again to refresh the cache.
-
-**Requirements:**
-- macOS or Linux with a graphical display (the browser window must be visible)
-- Node.js 18+ and the repo checked out locally
-
-**Note for `npx` users:** The `npm run login` command is only available from a local checkout. If you installed the server via `npx -y mountaineers-mcp`, you cannot run `login` directly — clone the repo first, run `login` to populate the cache, then go back to your normal `npx`-based setup.
+This writes the same cache file the server reads. The credentials are used only by this command (passed as env vars, not persisted).
 
 ## Tools reference
 
-All tools require the one-time [Authentication](#authentication) setup (Cloudflare gates the whole site). The split below is by the kind of data returned.
+Run `login` once before anything else (Cloudflare gates the whole site); the data tools below then work, split by the kind of data they return.
+
+### Setup
+
+| Tool | Description |
+|------|-------------|
+| `login` | Open a browser to sign in to mountaineers.org and cache the Cloudflare clearance + session cookies. Required once before any other tool; re-run when clearance expires. |
 
 ### Public data
 

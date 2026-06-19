@@ -12,7 +12,7 @@ async function main(): Promise<void> {
   }
 
   console.error("Opening a browser to solve the Cloudflare challenge and log in...");
-  const { userAgent, cookies } = await mintClearance(username, password);
+  const { userAgent, cookies } = await mintClearance({ username, password });
   saveClearance(userAgent, cookies);
 
   const cf = cookies.find((c) => c.name === "cf_clearance");
