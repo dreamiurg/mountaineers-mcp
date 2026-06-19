@@ -80,7 +80,8 @@ export class MountaineersClient {
       if (!reloaded) throw new Error(NO_CLEARANCE_MSG);
       this.clearance = reloaded;
       clearance = reloaded;
-      await this.rateLimit();
+      // No rateLimit() here: this is a single immediate retry of the request we
+      // just made; the initial rateLimit() already spaced it from other calls.
       response = await send();
       if (this.isChallenge(response)) {
         await this.discard(response);
