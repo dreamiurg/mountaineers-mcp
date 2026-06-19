@@ -162,15 +162,15 @@ npm install
 MOUNTAINEERS_USERNAME=your-username MOUNTAINEERS_PASSWORD=your-password npm run login
 ```
 
-This opens a Chromium browser window, navigates to mountaineers.org, solves the Cloudflare challenge automatically, logs in with your credentials, and saves the resulting cookies to a local cache file (`~/.mountaineers-mcp/clearance.json`). The MCP server reads the cache on startup -- no further action needed.
+This opens a Chromium browser window, navigates to mountaineers.org, solves the Cloudflare challenge automatically, logs in with your credentials, and saves the resulting cookies to a local cache file (`~/.cache/mountaineers-mcp/clearance.json`, or under `$XDG_CACHE_HOME` if set). The MCP server reads the cache on startup, and re-reads it automatically if the clearance expires mid-session — so re-running login takes effect without restarting the server.
 
-**When to re-run:** Cloudflare clearance cookies expire (typically after a few days). When tools that require login start returning "Cloudflare clearance expired", run `npm run login` again to refresh the cache.
+**When to re-run:** Cloudflare clearance cookies eventually expire (the exact lifetime is set by Cloudflare and varies). When tools that require login start returning "Cloudflare clearance expired", run `npm run login` again to refresh the cache.
 
 **Requirements:**
 - macOS or Linux with a graphical display (the browser window must be visible)
 - Node.js 18+ and the repo checked out locally
 
-**Note for `npx` users:** The `npm run login` command is only available from a local checkout. If you installed the server via `npx -y mountaineers-mcp`, you cannot run `login` directly -- clone the repo first, run `login` to populate the cache, then go back to your normal `npx`-based setup.
+**Note for `npx` users:** The `npm run login` command is only available from a local checkout. If you installed the server via `npx -y mountaineers-mcp`, you cannot run `login` directly — clone the repo first, run `login` to populate the cache, then go back to your normal `npx`-based setup.
 
 ## Tools reference
 
