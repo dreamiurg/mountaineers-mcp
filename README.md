@@ -22,14 +22,14 @@ The AI reads the Mountaineers website, understands the results, and gives you a 
 
 ## What can it do?
 
-**Search the website** (no login needed):
+**Search public data:**
 - Search activities by type, branch, difficulty, date, and more
 - Search courses, clinics, and seminars
 - Browse trip reports
 - Search routes and places
 - Get full details for any activity, trip report, route, or course
 
-**Access your account** (with your login):
+**Access your account:**
 - See your upcoming and past activities
 - See your completed activity history
 - See your course enrollments
@@ -38,6 +38,9 @@ The AI reads the Mountaineers website, understands the results, and gives you a 
 
 ## Setup
 
+> [!IMPORTANT]
+> **A one-time login is required for *all* tools, including public search.** mountaineers.org is now behind Cloudflare, which blocks plain HTTP clients — so the server needs a Cloudflare clearance cookie minted by `npm run login` from a local checkout (it opens a real browser once). Do the [Authentication](#authentication) step first; then set up your AI app below. Your mountaineers.org credentials are used only by `npm run login` — **do not** put them in your AI app's config; the server reads the cached cookie, not env vars.
+
 Follow the instructions for your AI app below.
 
 ### Claude Desktop
@@ -45,7 +48,7 @@ Follow the instructions for your AI app below.
 1. Download `mountaineers-mcp-X.Y.Z.mcpb` from the [latest release](https://github.com/dreamiurg/mountaineers-mcp/releases/latest)
 2. Open Claude Desktop → **Settings → Extensions → Install Extension**
 3. Select the downloaded `.mcpb` file
-4. Enter your mountaineers.org credentials if you want account access (optional)
+4. Complete the one-time [Authentication](#authentication) step (`npm run login` from a checkout) — required before any tool will work, since the bundled server reads the cached Cloudflare clearance cookie
 
 <p align="center">
   <img src="assets/claude-desktop-courses.png" width="75%" alt="Course search in Claude Desktop">
@@ -57,7 +60,7 @@ Follow the instructions for your AI app below.
 
 
 
-That's it -- no Node.js install required.
+That installs the server itself with no Node.js setup -- but you still need to run the one-time [Authentication](#authentication) step (which does require Node.js and a checkout) before any tool works.
 
 <details>
 <summary>Manual setup (alternative)</summary>
@@ -80,24 +83,7 @@ Requires [Node.js](https://nodejs.org) 18+.
 
 3. **Quit and reopen** Claude Desktop (not just close the window -- fully quit)
 
-To also access your account (activity history, rosters, etc.), add your mountaineers.org credentials:
-
-```json
-{
-  "mcpServers": {
-    "mountaineers": {
-      "command": "npx",
-      "args": ["-y", "mountaineers-mcp"],
-      "env": {
-        "MOUNTAINEERS_USERNAME": "your-username",
-        "MOUNTAINEERS_PASSWORD": "your-password"
-      }
-    }
-  }
-}
-```
-
-Your credentials stay on your computer and are only sent to mountaineers.org.
+Then complete the [Authentication](#authentication) step. Don't add `MOUNTAINEERS_USERNAME`/`MOUNTAINEERS_PASSWORD` to this config — the server reads the cached Cloudflare clearance cookie, not env vars; credentials are used only by `npm run login`.
 </details>
 
 ### ChatGPT Desktop
@@ -121,15 +107,13 @@ Or add to your `.mcp.json`:
   "mcpServers": {
     "mountaineers": {
       "command": "npx",
-      "args": ["-y", "mountaineers-mcp"],
-      "env": {
-        "MOUNTAINEERS_USERNAME": "your-username",
-        "MOUNTAINEERS_PASSWORD": "your-password"
-      }
+      "args": ["-y", "mountaineers-mcp"]
     }
   }
 }
 ```
+
+Then complete the [Authentication](#authentication) step (credentials go to `npm run login`, not this config).
 
 ### Codex CLI
 
@@ -139,11 +123,9 @@ Add to `~/.codex/config.toml`:
 [mcp_servers.mountaineers]
 command = "npx"
 args = ["-y", "mountaineers-mcp"]
-
-[mcp_servers.mountaineers.env]
-MOUNTAINEERS_USERNAME = "your-username"
-MOUNTAINEERS_PASSWORD = "your-password"
 ```
+
+Then complete the [Authentication](#authentication) step (credentials go to `npm run login`, not this config).
 
 Or use the CLI:
 
@@ -153,7 +135,7 @@ codex mcp add mountaineers -- npx -y mountaineers-mcp
 
 ## Authentication
 
-Mountaineers.org is protected by Cloudflare. Before the MCP server can log in and access your account, it needs a valid Cloudflare clearance cookie. You get one by running the login script from a local checkout:
+Mountaineers.org is protected by Cloudflare, which blocks plain HTTP clients — so **every** tool (public search included) needs a valid Cloudflare clearance cookie, plus a session cookie for account tools. The server doesn't log in itself; it replays cookies minted by the `login` command. Run it once from a local checkout:
 
 ```bash
 git clone https://github.com/dreamiurg/mountaineers-mcp.git
@@ -174,7 +156,9 @@ This opens a Chromium browser window, navigates to mountaineers.org, solves the 
 
 ## Tools reference
 
-### Public (no login required)
+All tools require the one-time [Authentication](#authentication) setup (Cloudflare gates the whole site). The split below is by the kind of data returned.
+
+### Public data
 
 | Tool | Description |
 |------|-------------|
@@ -187,7 +171,7 @@ This opens a Chromium browser window, navigates to mountaineers.org, solves the 
 | `get_route` | Get route details (difficulty, elevation, directions, maps, related routes) |
 | `get_course` | Get course details (schedule, pricing, leaders, badges earned) |
 
-### Authenticated (login required)
+### Your account
 
 | Tool | Description |
 |------|-------------|
@@ -201,7 +185,7 @@ This opens a Chromium browser window, navigates to mountaineers.org, solves the 
 
 ## Privacy
 
-Your credentials are stored locally on your computer and are only sent to mountaineers.org to log in. They are never sent to any AI provider or third party.
+Your credentials are used only by `npm run login` (passed as environment variables, not persisted) and are sent only to mountaineers.org. What's saved on your computer is the resulting session cookie cache (`~/.cache/mountaineers-mcp/clearance.json`, owner-readable only). Nothing — credentials or cookies — is ever sent to any AI provider or third party.
 
 ## Development
 
