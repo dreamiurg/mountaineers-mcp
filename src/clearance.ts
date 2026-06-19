@@ -15,9 +15,15 @@ export interface Clearance {
   cookies: ClearanceCookie[];
 }
 
+export function appCacheDir(): string {
+  return path.join(
+    process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"),
+    "mountaineers-mcp",
+  );
+}
+
 export function cachePath(): string {
-  const base = process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache");
-  return path.join(base, "mountaineers-mcp", "clearance.json");
+  return path.join(appCacheDir(), "clearance.json");
 }
 
 function isExpired(cookie: ClearanceCookie, now: number): boolean {
@@ -41,6 +47,8 @@ export function loadClearance(now: number = Date.now() / 1000): Clearance | null
   const userAgent = data.user_agent;
   if (typeof userAgent !== "string" || userAgent.length === 0) return null;
   const cookies = (Array.isArray(data.cookies) ? data.cookies : []) as ClearanceCookie[];
+  if (!cookies.every((c) => typeof c?.name === "string" && typeof c?.value === "string"))
+    return null;
   const cf = cookies.find((c) => c.name === "cf_clearance");
   if (!cf || isExpired(cf, now)) return null;
   if (!cookies.some((c) => c.name === "__ac")) return null;
@@ -50,7 +58,10 @@ export function loadClearance(now: number = Date.now() / 1000): Clearance | null
 export function saveClearance(userAgent: string, cookies: ClearanceCookie[]): void {
   const file = cachePath();
   const payload = { user_agent: userAgent, cookies, saved_at: Date.now() / 1000 };
-  fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
-  fs.writeFileSync(file, JSON.stringify(payload), { mode: 0o600 });
-  fs.chmodSync(file, 0o600);
+  const dir = path.dirname(file);
+  fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
+  const tmp = `${file}.${process.pid}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(payload), { mode: 0o600 });
+  fs.chmodSync(tmp, 0o600);
+  fs.renameSync(tmp, file);
 }

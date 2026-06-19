@@ -60,9 +60,21 @@ describe("MountaineersClient with a valid cache", () => {
     const loadSpy = vi.mocked(clearance.loadClearance);
     const client = new MountaineersClient();
     loadSpy.mockClear();
+    // Return a variant cookie value so we can verify the retry uses the reloaded cookies
+    loadSpy.mockReturnValue({
+      userAgent: "ua",
+      cookies: [
+        { name: "cf_clearance", value: "CF2", expires: -1 },
+        { name: "__ac", value: "AC", expires: -1 },
+      ],
+    });
     await expect(client.fetchRaw("/activities/")).rejects.toThrow(/clearance expired/);
     expect(loadSpy).toHaveBeenCalledTimes(1); // one reload during retry
     expect(impitFetch).toHaveBeenCalledTimes(2); // original + one retry
+    const [, secondInit] = impitFetch.mock.calls[1];
+    expect(new Headers(secondInit?.headers as HeadersInit).get("Cookie")).toContain(
+      "cf_clearance=CF2",
+    );
   });
 
   it("does not retry when the reloaded cache is null", async () => {
@@ -87,5 +99,25 @@ describe("MountaineersClient with no cache", () => {
     vi.mocked(clearance.loadClearance).mockReturnValue(null);
     const client = new MountaineersClient();
     await expect(client.fetchRaw("/x")).rejects.toThrow(/Run `npm run login`/);
+  });
+});
+
+describe("MountaineersClient higher-level fetch methods", () => {
+  beforeEach(() => {
+    vi.mocked(clearance.loadClearance).mockReturnValue(CACHE);
+  });
+
+  it("fetchHtml returns a cheerio API over the response body", async () => {
+    impitFetch.mockResolvedValue(res(200, {}, "<html><body><h1>Hi</h1></body></html>"));
+    const client = new MountaineersClient();
+    const $ = await client.fetchHtml("/x");
+    expect($("h1").text()).toBe("Hi");
+  });
+
+  it("fetchJson returns parsed JSON from the response body", async () => {
+    impitFetch.mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    const client = new MountaineersClient();
+    const data = await client.fetchJson("/x");
+    expect(data).toEqual({ ok: true });
   });
 });

@@ -4,6 +4,13 @@ import { type Clearance, loadClearance } from "./clearance.js";
 
 const BASE_URL = "https://www.mountaineers.org";
 const RATE_LIMIT_MS = 500;
+const NO_CLEARANCE_MSG = "No Cloudflare clearance found. Run `npm run login` to authenticate.";
+const CLEARANCE_EXPIRED_MSG =
+  "Cloudflare clearance expired. Run `npm run login` to re-authenticate.";
+
+function cookieString(clearance: Clearance): string {
+  return clearance.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+}
 
 export class MountaineersClient {
   private clearance: Clearance | null;
@@ -26,14 +33,17 @@ export class MountaineersClient {
     this.lastRequestTime = Date.now();
   }
 
-  private ensureClearance(): void {
-    if (!this.clearance) {
-      throw new Error("No Cloudflare clearance found. Run `npm run login` to authenticate.");
-    }
+  private ensureClearance(): Clearance {
+    if (!this.clearance) throw new Error(NO_CLEARANCE_MSG);
+    return this.clearance;
   }
 
-  private cookieHeader(): string {
-    return this.clearance!.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+  private async discard(response: ImpitResponse): Promise<void> {
+    try {
+      await response.body?.cancel();
+    } catch {
+      /* body already consumed/errored — nothing to release */
+    }
   }
 
   private isChallenge(response: ImpitResponse): boolean {
@@ -44,36 +54,32 @@ export class MountaineersClient {
     url: string,
     options: { headers?: Record<string, string> } = {},
   ): Promise<ImpitResponse> {
-    this.ensureClearance();
-
+    let clearance = this.ensureClearance();
     const fullUrl = url.startsWith("http") ? url : `${BASE_URL}${url}`;
     // Only inject cookies; let Impit own the User-Agent so it stays consistent
     // with the Chrome TLS fingerprint it presents (a mismatched UA can re-trip CF).
-    const send = () => {
-      const headers: Record<string, string> = {
-        Cookie: this.cookieHeader(),
-        ...options.headers,
-      };
-      return this.impit.fetch(fullUrl, { headers, redirect: "follow" });
-    };
+    const send = () =>
+      this.impit.fetch(fullUrl, {
+        headers: { ...options.headers, Cookie: cookieString(clearance) },
+        redirect: "follow",
+      });
 
     await this.rateLimit();
     let response = await send();
 
     if (this.isChallenge(response)) {
-      await response.body?.cancel(); // release the socket; do not read the body
-      this.clearance = loadClearance();
-      if (!this.clearance) {
-        throw new Error("No Cloudflare clearance found. Run `npm run login` to authenticate.");
-      }
+      await this.discard(response);
+      const reloaded = loadClearance();
+      if (!reloaded) throw new Error(NO_CLEARANCE_MSG);
+      this.clearance = reloaded;
+      clearance = reloaded;
       await this.rateLimit();
       response = await send();
       if (this.isChallenge(response)) {
-        await response.body?.cancel();
-        throw new Error("Cloudflare clearance expired. Run `npm run login` to re-authenticate.");
+        await this.discard(response);
+        throw new Error(CLEARANCE_EXPIRED_MSG);
       }
     }
-
     return response;
   }
 
@@ -108,9 +114,7 @@ export class MountaineersClient {
   }
 
   async fetchRosterTab(activityUrl: string): Promise<cheerio.CheerioAPI> {
-    const url = activityUrl.endsWith("/")
-      ? `${activityUrl}roster-tab`
-      : `${activityUrl}/roster-tab`;
+    const url = `${activityUrl.replace(/\/?$/, "/")}roster-tab`;
     const response = await this.fetchRaw(url, {
       headers: {
         Accept: "text/html",

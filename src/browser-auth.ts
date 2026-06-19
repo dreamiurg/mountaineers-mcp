@@ -1,8 +1,7 @@
-import * as os from "node:os";
 import * as path from "node:path";
 import type { BrowserContext } from "patchright";
 import { chromium } from "patchright";
-import type { ClearanceCookie } from "./clearance.js";
+import { appCacheDir, type ClearanceCookie } from "./clearance.js";
 
 const LOGIN_URL = "https://www.mountaineers.org/login";
 const WANTED = new Set(["cf_clearance", "__cf_bm", "__ac"]);
@@ -10,8 +9,7 @@ const CHALLENGE_TIMEOUT_MS = 45_000;
 const LOGIN_TIMEOUT_MS = 30_000;
 
 function profileDir(): string {
-  const base = process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache");
-  return path.join(base, "mountaineers-mcp", "chrome-profile");
+  return path.join(appCacheDir(), "chrome-profile");
 }
 
 export async function mintClearance(
@@ -26,13 +24,12 @@ export async function mintClearance(
     });
   } catch (e) {
     throw new Error(
-      `Failed to launch Chrome. If a previous run crashed, delete ${profileDir()} and retry. Cause: ${(e as Error).message}`,
+      `Failed to launch Chrome. If a previous run crashed, delete ${profileDir()} and retry. Cause: ${e instanceof Error ? e.message : String(e)}`,
     );
   }
 
   try {
     const page = context.pages()[0] ?? (await context.newPage());
-    const userAgent = await page.evaluate(() => navigator.userAgent);
 
     await page.goto(LOGIN_URL, { waitUntil: "domcontentloaded" });
 
@@ -47,13 +44,15 @@ export async function mintClearance(
         hasClearance = true;
         break;
       }
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(1000);
     }
     if (!hasClearance) {
       throw new Error(
         `Cloudflare did not issue a cf_clearance cookie within ${CHALLENGE_TIMEOUT_MS / 1000}s.`,
       );
     }
+
+    const userAgent = await page.evaluate(() => navigator.userAgent);
 
     // Plone login form. Field names per project memory: __ac_name / __ac_password,
     // submit button name="buttons.login". Verify selectors on first run.
