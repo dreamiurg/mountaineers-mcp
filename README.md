@@ -139,7 +139,7 @@ Mountaineers.org is behind Cloudflare, which blocks plain HTTP clients — so **
 
 ### Recommended: the `login` tool
 
-Just ask your assistant to run the **`login`** tool (e.g. "log in to mountaineers"). A Chrome window opens to the mountaineers.org sign-in page; **you** complete the login there (your password goes to the site, never to the chat, the server, or any config). The server then caches the cookies and every other tool works. If the browser is already signed in from a previous run, it finishes instantly.
+Just ask your assistant to run the **`login`** tool (e.g. "log in to mountaineers"). A Chrome window opens to the mountaineers.org sign-in page; **you** complete the login there (your password goes to the site, never to the chat, the server, or any config). The server then caches the cookies and every other tool works. If the browser is already signed in from a previous run, you won't need to type anything (it still takes a few tens of seconds to open Chrome, settle the session, and close).
 
 The cookies are saved to `~/.cache/mountaineers-mcp/clearance.json` (or under `$XDG_CACHE_HOME`), owner-readable only. The server reads the cache on startup and re-reads it automatically if the clearance expires mid-session — so re-running `login` takes effect without a restart.
 
