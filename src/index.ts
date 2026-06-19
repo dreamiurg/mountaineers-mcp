@@ -21,6 +21,7 @@ import { getTripReport, getTripReportSchema } from "./tools/get-trip-report.js";
 import { getVersion } from "./tools/get-version.js";
 import { listBranches, listBranchesSchema } from "./tools/list-branches.js";
 import { listCommittees, listCommitteesSchema } from "./tools/list-committees.js";
+import { login } from "./tools/login.js";
 import { searchActivities, searchActivitiesSchema } from "./tools/search-activities.js";
 import { searchBadges, searchBadgesSchema } from "./tools/search-badges.js";
 import { searchCourses, searchCoursesSchema } from "./tools/search-courses.js";
@@ -41,6 +42,25 @@ const server = new McpServer({
 function formatResult(data: unknown): string {
   return JSON.stringify(data, null, 2);
 }
+
+// Setup
+
+server.tool(
+  "login",
+  "Sign in to mountaineers.org. Opens a Chrome window where YOU complete the login (your password is never sent to this server or the AI); it then caches the Cloudflare clearance and session cookies. Required once before any other tool works — mountaineers.org is behind Cloudflare, which blocks unauthenticated clients. Re-run when a tool reports the clearance expired. Requires a desktop with Google Chrome (stable channel) installed; the call blocks for up to ~3 minutes while you sign in. If you're already signed in from a previous run, it may finish in seconds.",
+  {},
+  async () => {
+    try {
+      const result = await login();
+      return { content: [{ type: "text", text: formatResult(result) }] };
+    } catch (e) {
+      return {
+        content: [{ type: "text", text: `Error: ${(e as Error).message}` }],
+        isError: true,
+      };
+    }
+  },
+);
 
 // Public tools
 
@@ -313,7 +333,7 @@ server.tool(
 
 server.tool(
   "whoami",
-  "Get the currently logged-in user's name, slug, and profile URL. Requires a valid Cloudflare clearance cache (run `npm run login` first).",
+  "Get the currently logged-in user's name, slug, and profile URL. Requires a valid Cloudflare clearance cache — run the `login` tool first.",
   {},
   async () => {
     try {
