@@ -14,10 +14,8 @@ function createMockClient(): MountaineersClient {
     fetchJson: vi.fn(),
     fetchRaw: vi.fn(),
     fetchRosterTab: vi.fn(),
-    ensureLoggedIn: vi.fn(),
+    ensureClearance: vi.fn(),
     baseUrl: "https://www.mountaineers.org",
-    isLoggedIn: true,
-    hasCredentials: true,
   } as unknown as MountaineersClient;
 }
 
@@ -28,9 +26,9 @@ describe("getMemberProfile", () => {
     client = createMockClient();
   });
 
-  it("calls fetchHtml with correct member URL and authenticated=true", async () => {
+  it("calls fetchHtml with correct member URL", async () => {
     await getMemberProfile(client, { member_slug: "john-smith" });
-    expect(client.fetchHtml).toHaveBeenCalledWith("/members/john-smith", { authenticated: true });
+    expect(client.fetchHtml).toHaveBeenCalledWith("/members/john-smith");
   });
 
   it("returns parsed profile with full URL", async () => {
@@ -41,6 +39,6 @@ describe("getMemberProfile", () => {
 
   it("constructs URL from slug, not from a full URL", async () => {
     await getMemberProfile(client, { member_slug: "alice-wonder" });
-    expect(client.fetchHtml).toHaveBeenCalledWith("/members/alice-wonder", { authenticated: true });
+    expect(client.fetchHtml).toHaveBeenCalledWith("/members/alice-wonder");
   });
 });

@@ -14,6 +14,6 @@ export async function getMemberProfile(
   input: GetMemberProfileInput,
 ): Promise<MemberProfile> {
   const url = `/members/${input.member_slug}`;
-  const $ = await client.fetchHtml(url, { authenticated: true });
+  const $ = await client.fetchHtml(url);
   return parseMemberProfile($, `${client.baseUrl}${url}`);
 }

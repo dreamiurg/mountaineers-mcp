@@ -24,9 +24,7 @@ export async function getMyActivities(
 ): Promise<ListResult<MyActivity>> {
   const me = await whoami(client);
 
-  const $ = await client.fetchHtml(`/members/${me.slug}/member-activities`, {
-    authenticated: true,
-  });
+  const $ = await client.fetchHtml(`/members/${me.slug}/member-activities`);
 
   let activities = parseMemberActivities($);
 

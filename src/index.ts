@@ -313,7 +313,7 @@ server.tool(
 
 server.tool(
   "whoami",
-  "Get the currently logged-in user's name, slug, and profile URL. Requires MOUNTAINEERS_USERNAME and MOUNTAINEERS_PASSWORD env vars.",
+  "Get the currently logged-in user's name, slug, and profile URL. Requires a valid Cloudflare clearance cache (run `npm run login` first).",
   {},
   async () => {
     try {

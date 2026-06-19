@@ -33,6 +33,6 @@ export async function getRouteTripReports(
   const routePath = normalizeRoutePath(input.route_url);
   const page = input.page ?? 0;
   const query = page > 0 ? `?b_start=${page * 20}` : "";
-  const $ = await client.fetchHtml(`${routePath}/trip-reports${query}`, { authenticated: true });
+  const $ = await client.fetchHtml(`${routePath}/trip-reports${query}`);
   return parseTripReportResults($, page);
 }

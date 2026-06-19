@@ -14,10 +14,8 @@ function createMockClient(): MountaineersClient {
     fetchJson: vi.fn(),
     fetchRaw: vi.fn(),
     fetchRosterTab: vi.fn(),
-    ensureLoggedIn: vi.fn(),
+    ensureClearance: vi.fn(),
     baseUrl: "https://www.mountaineers.org",
-    isLoggedIn: false,
-    hasCredentials: false,
   } as unknown as MountaineersClient;
 }
 
@@ -34,7 +32,6 @@ describe("getRouteTripReports", () => {
     });
     expect(client.fetchHtml).toHaveBeenCalledWith(
       "/activities/routes-places/mount-si-main-trail/trip-reports",
-      { authenticated: true },
     );
   });
 
@@ -44,7 +41,6 @@ describe("getRouteTripReports", () => {
     });
     expect(client.fetchHtml).toHaveBeenCalledWith(
       "/activities/routes-places/mount-si-main-trail/trip-reports",
-      { authenticated: true },
     );
   });
 
@@ -55,18 +51,7 @@ describe("getRouteTripReports", () => {
     });
     expect(client.fetchHtml).toHaveBeenCalledWith(
       "/activities/routes-places/mount-si-main-trail/trip-reports?b_start=60",
-      { authenticated: true },
     );
-  });
-
-  it("passes authenticated: true to fetchHtml", async () => {
-    await getRouteTripReports(client, {
-      route_url: "/activities/routes-places/mount-si-main-trail",
-    });
-    const opts = (client.fetchHtml as ReturnType<typeof vi.fn>).mock.calls[0][1] as {
-      authenticated?: boolean;
-    };
-    expect(opts).toEqual({ authenticated: true });
   });
 
   it("does not append b_start for page 0", async () => {

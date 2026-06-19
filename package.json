@@ -9,7 +9,15 @@
   "main": "dist/index.js",
   "files": [
     "dist",
-    "!dist/__tests__"
+    "!dist/__tests__",
+    "!dist/login.js",
+    "!dist/login.js.map",
+    "!dist/login.d.ts",
+    "!dist/login.d.ts.map",
+    "!dist/browser-auth.js",
+    "!dist/browser-auth.js.map",
+    "!dist/browser-auth.d.ts",
+    "!dist/browser-auth.d.ts.map"
   ],
   "engines": {
     "node": ">=18"
@@ -40,21 +48,24 @@
     "test:coverage": "vitest run --coverage",
     "sast": "semgrep scan --config auto --error .",
     "ci": "npm run check && npm run sast && npm run test:coverage && npm run build",
-    "build:mcpb": "sh scripts/build-mcpb.sh"
+    "build:mcpb": "sh scripts/build-mcpb.sh",
+    "login": "tsx src/login.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
     "cheerio": "^1.0.0",
+    "impit": "^0.14.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@anthropic-ai/mcpb": "^2.1.2",
     "@biomejs/biome": "^2.3.14",
     "@types/node": "^25.2.1",
     "@vitest/coverage-v8": "^4.0.18",
+    "patchright": "^1.61.0",
     "tsx": "^4.19.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.0.18",
-    "@anthropic-ai/mcpb": "^2.1.2"
+    "vitest": "^4.0.18"
   },
   "overrides": {
     "tmp": "0.2.5",

@@ -27,9 +27,7 @@ export async function getMemberActivities(
 ): Promise<ListResult<MyActivity>> {
   const slug = normalizeMemberSlug(input.member);
 
-  const $ = await client.fetchHtml(`/members/${slug}/member-activities`, {
-    authenticated: true,
-  });
+  const $ = await client.fetchHtml(`/members/${slug}/member-activities`);
 
   let activities = parseMemberActivities($);
 

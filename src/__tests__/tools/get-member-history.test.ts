@@ -9,10 +9,8 @@ function createMockClient(historyItems: Record<string, unknown>[] = []): Mountai
     fetchJson: vi.fn().mockResolvedValue(historyItems),
     fetchRaw: vi.fn(),
     fetchRosterTab: vi.fn(),
-    ensureLoggedIn: vi.fn(),
+    ensureClearance: vi.fn(),
     baseUrl: "https://www.mountaineers.org",
-    isLoggedIn: true,
-    hasCredentials: true,
   } as unknown as MountaineersClient;
 }
 
@@ -22,7 +20,6 @@ describe("getMemberHistory", () => {
     await getMemberHistory(client, { member: "stefanie-schiller" });
     expect(client.fetchJson).toHaveBeenCalledWith(
       "/members/stefanie-schiller/member-activity-history.json",
-      { authenticated: true },
     );
   });
 
@@ -33,7 +30,6 @@ describe("getMemberHistory", () => {
     });
     expect(client.fetchJson).toHaveBeenCalledWith(
       "/members/stefanie-schiller/member-activity-history.json",
-      { authenticated: true },
     );
   });
 
@@ -42,7 +38,6 @@ describe("getMemberHistory", () => {
     await getMemberHistory(client, { member: "/members/stefanie-schiller/" });
     expect(client.fetchJson).toHaveBeenCalledWith(
       "/members/stefanie-schiller/member-activity-history.json",
-      { authenticated: true },
     );
   });
 
@@ -51,10 +46,7 @@ describe("getMemberHistory", () => {
     await getMemberHistory(client, {
       member: "https://www.mountaineers.org/members/jane-doe/member-activities",
     });
-    expect(client.fetchJson).toHaveBeenCalledWith(
-      "/members/jane-doe/member-activity-history.json",
-      { authenticated: true },
-    );
+    expect(client.fetchJson).toHaveBeenCalledWith("/members/jane-doe/member-activity-history.json");
   });
 
   it("parses items and applies filters + sort", async () => {
@@ -101,9 +93,9 @@ describe("getMemberHistory", () => {
     expect(result.limit).toBe(2);
   });
 
-  it("does NOT call ensureLoggedIn (auth handled by fetchJson)", async () => {
+  it("does NOT call ensureClearance directly (clearance is handled by fetchJson)", async () => {
     const client = createMockClient([]);
     await getMemberHistory(client, { member: "jane-doe" });
-    expect(client.ensureLoggedIn).not.toHaveBeenCalled();
+    expect(client.ensureClearance).not.toHaveBeenCalled();
   });
 });

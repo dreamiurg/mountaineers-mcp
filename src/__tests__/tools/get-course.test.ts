@@ -66,10 +66,8 @@ function createMockClient(html: string): MountaineersClient {
     fetchJson: vi.fn(),
     fetchRaw: vi.fn(),
     fetchRosterTab: vi.fn(),
-    ensureLoggedIn: vi.fn(),
+    ensureClearance: vi.fn(),
     baseUrl: "https://www.mountaineers.org",
-    isLoggedIn: false,
-    hasCredentials: false,
   } as unknown as MountaineersClient;
 }
 

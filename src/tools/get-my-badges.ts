@@ -20,9 +20,7 @@ export async function getMyBadges(
 ): Promise<ListResult<Badge>> {
   const me = await whoami(client);
 
-  const $ = await client.fetchHtml(`/members/${me.slug}`, {
-    authenticated: true,
-  });
+  const $ = await client.fetchHtml(`/members/${me.slug}`);
 
   const profile = parseMemberProfile($, `${client.baseUrl}/members/${me.slug}`);
   let badges = profile.badges;

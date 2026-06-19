@@ -17,8 +17,6 @@ export async function searchMembers(
   client: MountaineersClient,
   input: SearchMembersInput,
 ): Promise<SearchResult<MemberSummary>> {
-  await client.ensureLoggedIn();
-
   const params = new URLSearchParams();
   params.append("type", "mtneers.contact");
   params.append("SearchableText", input.query);

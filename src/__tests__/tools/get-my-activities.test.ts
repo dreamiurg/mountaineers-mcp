@@ -63,10 +63,8 @@ function createMockClient(
     fetchJson: vi.fn(),
     fetchRaw: vi.fn(),
     fetchRosterTab: vi.fn(),
-    ensureLoggedIn: vi.fn(),
+    ensureClearance: vi.fn(),
     baseUrl: "https://www.mountaineers.org",
-    isLoggedIn: true,
-    hasCredentials: true,
   } as unknown as MountaineersClient;
 }
 
@@ -443,15 +441,7 @@ describe("getMyActivities", () => {
     it("fetches member-activities HTML page with member slug", async () => {
       const client = createMockClient();
       await getMyActivities(client, {});
-      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-activities", {
-        authenticated: true,
-      });
-    });
-
-    it("calls ensureLoggedIn via whoami", async () => {
-      const client = createMockClient();
-      await getMyActivities(client, {});
-      expect(client.ensureLoggedIn).toHaveBeenCalled();
+      expect(client.fetchHtml).toHaveBeenCalledWith("/members/jane-doe/member-activities");
     });
   });
 });

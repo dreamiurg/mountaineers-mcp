@@ -27,9 +27,7 @@ export async function getMemberCourses(
 ): Promise<ListResult<MyCourse>> {
   const slug = normalizeMemberSlug(input.member);
 
-  const $ = await client.fetchHtml(`/members/${slug}/member-courses`, {
-    authenticated: true,
-  });
+  const $ = await client.fetchHtml(`/members/${slug}/member-courses`);
 
   let courses = parseMemberCourses($);
 
