@@ -47,7 +47,7 @@ function formatResult(data: unknown): string {
 
 server.tool(
   "login",
-  "Sign in to mountaineers.org. Opens a Chrome window where YOU complete the login (your password is never sent to this server or the AI); it then caches the Cloudflare clearance and session cookies. Required once before any other tool works — mountaineers.org is behind Cloudflare, which blocks unauthenticated clients. Re-run when a tool reports the clearance expired. Requires a desktop with Google Chrome installed; the call blocks for up to ~3 minutes while you sign in.",
+  "Sign in to mountaineers.org. Opens a Chrome window where YOU complete the login (your password is never sent to this server or the AI); it then caches the Cloudflare clearance and session cookies. Required once before any other tool works — mountaineers.org is behind Cloudflare, which blocks unauthenticated clients. Re-run when a tool reports the clearance expired. Requires a desktop with Google Chrome (stable channel) installed; the call blocks for up to ~3 minutes while you sign in. If you're already signed in from a previous run, it may finish in seconds.",
   {},
   async () => {
     try {
@@ -333,7 +333,7 @@ server.tool(
 
 server.tool(
   "whoami",
-  "Get the currently logged-in user's name, slug, and profile URL. Requires a valid Cloudflare clearance cache (run `npm run login` first).",
+  "Get the currently logged-in user's name, slug, and profile URL. Requires a valid Cloudflare clearance cache (run the `login` tool first, or `npm run login` from a checkout).",
   {},
   async () => {
     try {

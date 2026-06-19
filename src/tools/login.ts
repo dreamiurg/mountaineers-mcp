@@ -1,5 +1,5 @@
 import { mintClearance } from "../browser-auth.js";
-import { cachePath, saveClearance } from "../clearance.js";
+import { cachePath, formatCookieExpiry, saveClearance } from "../clearance.js";
 
 export interface LoginResult {
   message: string;
@@ -20,10 +20,7 @@ export async function login(): Promise<LoginResult> {
   saveClearance(userAgent, cookies);
 
   const cf = cookies.find((c) => c.name === "cf_clearance");
-  const expires =
-    cf?.expires && cf.expires > 0
-      ? new Date(cf.expires * 1000).toISOString()
-      : "session (no fixed expiry)";
+  const expires = formatCookieExpiry(cf?.expires);
 
   return {
     message:

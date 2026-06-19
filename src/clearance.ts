@@ -26,6 +26,12 @@ export function cachePath(): string {
   return path.join(appCacheDir(), "clearance.json");
 }
 
+export function formatCookieExpiry(expires: number | undefined): string {
+  return expires && expires > 0
+    ? new Date(expires * 1000).toISOString()
+    : "session (no fixed expiry)";
+}
+
 function isExpired(cookie: ClearanceCookie, now: number): boolean {
   const exp = cookie.expires ?? -1;
   return exp > 0 && exp <= now;

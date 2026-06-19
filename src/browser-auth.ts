@@ -4,7 +4,7 @@ import { chromium } from "patchright";
 import { appCacheDir, type ClearanceCookie } from "./clearance.js";
 
 const LOGIN_URL = "https://www.mountaineers.org/login";
-const WANTED = new Set(["cf_clearance", "__cf_bm", "__ac"]);
+const CLEARANCE_COOKIE_NAMES = new Set(["cf_clearance", "__cf_bm", "__ac"]);
 const CHALLENGE_TIMEOUT_MS = 45_000;
 const AUTOFILL_LOGIN_TIMEOUT_MS = 30_000;
 const MANUAL_LOGIN_TIMEOUT_MS = 180_000;
@@ -41,10 +41,10 @@ async function waitForClearanceCookie(context: BrowserContext, page: Page): Prom
   const deadline = Date.now() + CHALLENGE_TIMEOUT_MS;
   while (Date.now() < deadline) {
     if ((await context.cookies()).some((c) => c.name === "cf_clearance")) return;
-    await page.waitForTimeout(1000);
+    await page.waitForTimeout(250);
   }
   throw new Error(
-    `Cloudflare did not issue a cf_clearance cookie within ${CHALLENGE_TIMEOUT_MS / 1000}s.`,
+    `Cloudflare did not issue a cf_clearance cookie within ${CHALLENGE_TIMEOUT_MS / 1000}s. Try closing other Chrome windows and retrying.`,
   );
 }
 
@@ -70,6 +70,7 @@ async function completeLogin(page: Page, creds?: Credentials): Promise<void> {
       { timeout },
     );
   } catch {
+    // $eval throws when the selector doesn't match; null means no Plone error was shown.
     const errText = await page
       .$eval(".portalMessage.error", (el) => el.textContent?.trim())
       .catch(() => null);
@@ -84,7 +85,7 @@ async function completeLogin(page: Page, creds?: Credentials): Promise<void> {
 
 async function harvestCookies(context: BrowserContext): Promise<ClearanceCookie[]> {
   return (await context.cookies())
-    .filter((c) => WANTED.has(c.name))
+    .filter((c) => CLEARANCE_COOKIE_NAMES.has(c.name))
     .map((c) => ({
       name: c.name,
       value: c.value,
@@ -108,6 +109,7 @@ export async function mintClearance(
 ): Promise<{ userAgent: string; cookies: ClearanceCookie[] }> {
   const context = await launchContext();
   try {
+    // launchPersistentContext always opens one page; newPage() is a safety fallback.
     const page = context.pages()[0] ?? (await context.newPage());
     await page.goto(LOGIN_URL, { waitUntil: "domcontentloaded" });
     await waitForClearanceCookie(context, page);
