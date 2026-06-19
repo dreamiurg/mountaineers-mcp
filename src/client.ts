@@ -28,8 +28,7 @@ export class MountaineersClient {
   }
 
   private cookieHeader(): string {
-    if (!this.clearance) return "";
-    return this.clearance.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+    return this.clearance!.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
   }
 
   private isChallenge(response: Response): boolean {

@@ -35,11 +35,11 @@ describe("MountaineersClient with a valid cache", () => {
     const client = new MountaineersClient();
     await client.fetchRaw("/activities/");
     const [, init] = fetchMock.mock.calls[0];
-    const headers = init?.headers as Record<string, string>;
-    expect(headers["User-Agent"]).toBe("Mozilla/5.0 (Test) Chrome/126");
-    expect(headers.Cookie).toContain("cf_clearance=CF");
-    expect(headers.Cookie).toContain("__cf_bm=BM");
-    expect(headers.Cookie).toContain("__ac=AC");
+    const headers = new Headers(init?.headers as HeadersInit);
+    expect(headers.get("User-Agent")).toBe("Mozilla/5.0 (Test) Chrome/126");
+    expect(headers.get("Cookie")).toContain("cf_clearance=CF");
+    expect(headers.get("Cookie")).toContain("__cf_bm=BM");
+    expect(headers.get("Cookie")).toContain("__ac=AC");
   });
 
   it("reloads the cache once and retries on 403 cf-mitigated:challenge, then throws when still challenged", async () => {
@@ -49,7 +49,7 @@ describe("MountaineersClient with a valid cache", () => {
     const loadSpy = vi.mocked(clearance.loadClearance);
     const client = new MountaineersClient();
     loadSpy.mockClear();
-    await expect(client.fetchRaw("/activities/")).rejects.toThrow(/npm run login/);
+    await expect(client.fetchRaw("/activities/")).rejects.toThrow(/clearance expired/);
     expect(loadSpy).toHaveBeenCalledTimes(1); // one reload during retry
     expect(fetchMock).toHaveBeenCalledTimes(2); // original + one retry
   });
