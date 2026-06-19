@@ -59,11 +59,20 @@ export async function mintClearance(
     await page.fill("#__ac_name", username);
     await page.fill("#__ac_password", password);
     await page.click('input[name="buttons.login"], button[name="buttons.login"]');
-    await page.waitForFunction(
-      () => document.body?.classList.contains("userrole-authenticated") ?? false,
-      undefined,
-      { timeout: LOGIN_TIMEOUT_MS },
-    );
+    try {
+      await page.waitForFunction(
+        () => document.body?.classList.contains("userrole-authenticated") ?? false,
+        undefined,
+        { timeout: LOGIN_TIMEOUT_MS },
+      );
+    } catch {
+      const errText = await page
+        .$eval(".portalMessage.error", (el) => el.textContent?.trim())
+        .catch(() => null);
+      throw new Error(
+        errText ? `Login failed: ${errText}` : "Login timed out — check credentials or network.",
+      );
+    }
 
     const cookies: ClearanceCookie[] = (await context.cookies())
       .filter((c) => WANTED.has(c.name))

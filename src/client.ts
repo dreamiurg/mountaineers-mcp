@@ -46,6 +46,13 @@ export class MountaineersClient {
     }
   }
 
+  private async ensureOk(response: ImpitResponse, url: string): Promise<void> {
+    if (!response.ok) {
+      await this.discard(response);
+      throw new Error(`HTTP ${response.status} fetching ${url}`);
+    }
+  }
+
   private isChallenge(response: ImpitResponse): boolean {
     return response.status === 403 && response.headers.get("cf-mitigated") === "challenge";
   }
@@ -87,6 +94,7 @@ export class MountaineersClient {
     const response = await this.fetchRaw(url, {
       headers: { Accept: "text/html" },
     });
+    await this.ensureOk(response, url);
     const html = await response.text();
     return cheerio.load(html);
   }
@@ -99,6 +107,7 @@ export class MountaineersClient {
         "X-Requested-With": "XMLHttpRequest",
       },
     });
+    await this.ensureOk(response, url);
     const html = await response.text();
     return cheerio.load(html);
   }
@@ -110,10 +119,7 @@ export class MountaineersClient {
         "X-Requested-With": "XMLHttpRequest",
       },
     });
-    if (!response.ok) {
-      await this.discard(response);
-      throw new Error(`HTTP ${response.status} fetching ${response.url}`);
-    }
+    await this.ensureOk(response, url);
     return (await response.json()) as T;
   }
 
@@ -125,6 +131,7 @@ export class MountaineersClient {
         "X-Requested-With": "XMLHttpRequest",
       },
     });
+    await this.ensureOk(response, url);
     const html = await response.text();
     return cheerio.load(html);
   }

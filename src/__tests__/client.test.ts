@@ -134,4 +134,10 @@ describe("MountaineersClient higher-level fetch methods", () => {
     const client = new MountaineersClient();
     await expect(client.fetchJson("/x")).rejects.toThrow(/HTTP 404/);
   });
+
+  it("fetchHtml throws a clear HTTP error on a non-2xx response", async () => {
+    impitFetch.mockResolvedValue(res(500, {}, "Server Error"));
+    const client = new MountaineersClient();
+    await expect(client.fetchHtml("/x")).rejects.toThrow(/HTTP 500/);
+  });
 });
