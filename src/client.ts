@@ -110,6 +110,10 @@ export class MountaineersClient {
         "X-Requested-With": "XMLHttpRequest",
       },
     });
+    if (!response.ok) {
+      await this.discard(response);
+      throw new Error(`HTTP ${response.status} fetching ${response.url}`);
+    }
     return (await response.json()) as T;
   }
 

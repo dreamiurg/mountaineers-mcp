@@ -78,11 +78,19 @@ describe("MountaineersClient with a valid cache", () => {
   });
 
   it("does not retry when the reloaded cache is null", async () => {
-    impitFetch.mockImplementation(() => Promise.resolve(res(403, { "cf-mitigated": "challenge" })));
+    const cancelSpy = vi.fn();
+    const challengeRes = new Response("", {
+      status: 403,
+      headers: { "cf-mitigated": "challenge" },
+    });
+    Object.defineProperty(challengeRes, "body", { value: { cancel: cancelSpy } });
+    impitFetch.mockResolvedValue(challengeRes);
     const loadSpy = vi.mocked(clearance.loadClearance);
     const client = new MountaineersClient();
+    // constructor already saw CACHE (beforeEach); this overrides only the reload call inside fetchRaw
     loadSpy.mockReturnValue(null); // cache deleted mid-session
     await expect(client.fetchRaw("/x")).rejects.toThrow(/No Cloudflare clearance/);
+    expect(cancelSpy).toHaveBeenCalled();
     expect(impitFetch).toHaveBeenCalledTimes(1); // no second request
   });
 
@@ -119,5 +127,11 @@ describe("MountaineersClient higher-level fetch methods", () => {
     const client = new MountaineersClient();
     const data = await client.fetchJson("/x");
     expect(data).toEqual({ ok: true });
+  });
+
+  it("fetchJson throws a clear HTTP error on a non-2xx response", async () => {
+    impitFetch.mockResolvedValue(res(404, {}, "Not Found"));
+    const client = new MountaineersClient();
+    await expect(client.fetchJson("/x")).rejects.toThrow(/HTTP 404/);
   });
 });

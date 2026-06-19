@@ -62,6 +62,5 @@ export function saveClearance(userAgent: string, cookies: ClearanceCookie[]): vo
   fs.mkdirSync(dir, { recursive: true, mode: 0o700 });
   const tmp = `${file}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(payload), { mode: 0o600 });
-  fs.chmodSync(tmp, 0o600);
   fs.renameSync(tmp, file);
 }
