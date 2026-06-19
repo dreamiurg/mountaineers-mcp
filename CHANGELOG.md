@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.9.0...v1.10.0) (2026-06-19)
+
+
+### Features
+
+* Cloudflare-aware auth via headed-browser cookie minting ([#81](https://github.com/dreamiurg/mountaineers-mcp/issues/81)) ([cead781](https://github.com/dreamiurg/mountaineers-mcp/commit/cead7814b6d50b1d9997438205c0101cf51007ac))
+
 ## [1.9.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.8.1...v1.9.0) (2026-04-23)
 
 
