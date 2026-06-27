@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.11.0...v1.11.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* reload clearance on demand so login takes effect without a restart ([#91](https://github.com/dreamiurg/mountaineers-mcp/issues/91)) ([3e5086a](https://github.com/dreamiurg/mountaineers-mcp/commit/3e5086a767867507302827e381145d53aadda9d5))
+
 ## [1.11.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.10.0...v1.11.0) (2026-06-19)
 
 
