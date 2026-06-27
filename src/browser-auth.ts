@@ -49,7 +49,7 @@ async function waitForClearanceCookie(context: BrowserContext, page: Page): Prom
   }
   if (!found) {
     throw new Error(
-      `Cloudflare did not issue a cf_clearance cookie within ${CHALLENGE_TIMEOUT_MS / 1000}s. Try closing other Chrome windows and retrying.`,
+      `Browser sign-in did not complete within ${CHALLENGE_TIMEOUT_MS / 1000}s. Try closing other Chrome windows and retrying.`,
     );
   }
 }

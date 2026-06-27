@@ -4,9 +4,9 @@ import { type Clearance, loadClearance } from "./clearance.js";
 
 const BASE_URL = "https://www.mountaineers.org";
 const RATE_LIMIT_MS = 500;
-const NO_CLEARANCE_MSG = "No Cloudflare clearance found. Run `npm run login` to authenticate.";
+const NO_CLEARANCE_MSG = "Not signed in to mountaineers.org. Run the `login` tool to authenticate.";
 const CLEARANCE_EXPIRED_MSG =
-  "Cloudflare clearance expired. Run `npm run login` to re-authenticate.";
+  "Your mountaineers.org session expired. Run the `login` tool to re-authenticate.";
 
 function cookieString(clearance: Clearance): string {
   return clearance.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
@@ -34,6 +34,12 @@ export class MountaineersClient {
   }
 
   private ensureClearance(): Clearance {
+    // The single client instance is constructed at server startup. If the server
+    // started before the user authenticated, the constructor saw no cache. The
+    // `login` tool writes the clearance from a separate process, so re-read from
+    // disk here before giving up — otherwise a fresh login wouldn't take effect
+    // until the server was restarted.
+    if (!this.clearance) this.clearance = loadClearance();
     if (!this.clearance) throw new Error(NO_CLEARANCE_MSG);
     return this.clearance;
   }

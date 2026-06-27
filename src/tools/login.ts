@@ -23,8 +23,7 @@ export async function login(): Promise<LoginResult> {
   const expires = formatCookieExpiry(cf?.expires);
 
   return {
-    message:
-      "Signed in. Cloudflare clearance and session cookies cached; other tools will now work.",
+    message: "Signed in. Your session is cached; other tools will now work.",
     cache_path: cachePath(),
     expires,
   };
