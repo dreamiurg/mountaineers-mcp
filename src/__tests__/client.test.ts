@@ -68,7 +68,7 @@ describe("MountaineersClient with a valid cache", () => {
         { name: "__ac", value: "AC", expires: -1 },
       ],
     });
-    await expect(client.fetchRaw("/activities/")).rejects.toThrow(/clearance expired/);
+    await expect(client.fetchRaw("/activities/")).rejects.toThrow(/session expired/);
     expect(loadSpy).toHaveBeenCalledTimes(1); // one reload during retry
     expect(impitFetch).toHaveBeenCalledTimes(2); // original + one retry
     const [, secondInit] = impitFetch.mock.calls[1];
@@ -89,7 +89,7 @@ describe("MountaineersClient with a valid cache", () => {
     const client = new MountaineersClient();
     // constructor already saw CACHE (beforeEach); this overrides only the reload call inside fetchRaw
     loadSpy.mockReturnValue(null); // cache deleted mid-session
-    await expect(client.fetchRaw("/x")).rejects.toThrow(/No Cloudflare clearance/);
+    await expect(client.fetchRaw("/x")).rejects.toThrow(/`login` tool/);
     expect(cancelSpy).toHaveBeenCalled();
     expect(impitFetch).toHaveBeenCalledTimes(1); // no second request
   });
@@ -106,7 +106,21 @@ describe("MountaineersClient with no cache", () => {
   it("throws an actionable error on any request", async () => {
     vi.mocked(clearance.loadClearance).mockReturnValue(null);
     const client = new MountaineersClient();
-    await expect(client.fetchRaw("/x")).rejects.toThrow(/Run `npm run login`/);
+    await expect(client.fetchRaw("/x")).rejects.toThrow(/`login` tool/);
+  });
+
+  it("lazily reloads clearance written after construction (e.g. by the login tool)", async () => {
+    const loadSpy = vi.mocked(clearance.loadClearance);
+    // Server started before the user logged in: constructor sees no cache.
+    loadSpy.mockReturnValueOnce(null);
+    const client = new MountaineersClient();
+    // The login tool (a separate process) has since written the cache. A later
+    // request must pick it up without restarting the server.
+    loadSpy.mockReturnValue(CACHE);
+    impitFetch.mockResolvedValue(res(200));
+    await client.fetchRaw("/activities/");
+    const [, init] = impitFetch.mock.calls[0];
+    expect(new Headers(init?.headers as HeadersInit).get("Cookie")).toContain("cf_clearance=CF");
   });
 });
 
