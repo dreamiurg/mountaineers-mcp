@@ -1,7 +1,10 @@
 # Mountaineers MCP Server
 
-[![CI](https://github.com/dreamiurg/mountaineers-mcp/actions/workflows/pr.yml/badge.svg)](https://github.com/dreamiurg/mountaineers-mcp/actions/workflows/pr.yml)
 [![npm](https://img.shields.io/npm/v/mountaineers-mcp)](https://www.npmjs.com/package/mountaineers-mcp)
+
+> **Other projects you might like:** [PNW Climb Planner](https://dreamiurg.net/pnw-climb-planner.html) · [mountaineers-assistant](https://github.com/dreamiurg/mountaineers-assistant) · [peakbagger-cli](https://github.com/dreamiurg/peakbagger-cli) · [claude-mountaineering-skills](https://github.com/dreamiurg/claude-mountaineering-skills)
+
+<a href='https://ko-fi.com/Q3N622FHZM' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 
 ## What is this?
 
@@ -209,14 +212,18 @@ npm test             # Run tests
 npm run ci           # Full CI: check + coverage + build
 ```
 
-## Other Mountaineering & Outdoors Tools
-
-I climb, scramble, and hike a lot, and I keep building tools around it. If this one's useful to you, the others might be too:
-
-- **[mountaineers-assistant](https://github.com/dreamiurg/mountaineers-assistant)** -- Chrome extension that syncs your mountaineers.org activity history and shows you stats, trends, and climbing partners you can't see on the site.
-- **[peakbagger-cli](https://github.com/dreamiurg/peakbagger-cli)** -- Command-line access to PeakBagger.com. Search peaks, check elevation and prominence, browse ascent stats. Outputs JSON for piping into other tools.
-- **[claude-mountaineering-skills](https://github.com/dreamiurg/claude-mountaineering-skills)** -- Claude Code plugin that generates route beta reports by pulling conditions, forecasts, and trip reports from multiple mountaineering sites.
-
 ## License
 
 MIT
+
+---
+
+## More from @dreamiurg
+
+- 🏔️ **[PNW Climb Planner](https://dreamiurg.net/pnw-climb-planner.html)** — pick a Washington peak, see the odds of a climbable day from 20 years of weather data, and line up backups ([the story behind it](https://dreamiurg.net/2026/07/01/picking-backup-climbs.html))
+- **[mountaineers-assistant](https://github.com/dreamiurg/mountaineers-assistant)** — Chrome extension with your Mountaineers climbing stats, local-only
+- **[peakbagger-cli](https://github.com/dreamiurg/peakbagger-cli)** — search and analyze PeakBagger.com peak data in your terminal
+- **[claude-mountaineering-skills](https://github.com/dreamiurg/claude-mountaineering-skills)** — automated route research: weather, hazards, and trip reports in one report
+- more at [dreamiurg.net/projects](https://dreamiurg.net/projects/)
+
+Made by [@dreamiurg](https://dreamiurg.net) in Seattle. If this project saved you time, you can [buy me a coffee](https://ko-fi.com/Q3N622FHZM) — appreciated, never expected.
