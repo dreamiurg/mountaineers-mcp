@@ -48,10 +48,7 @@ Follow the instructions for your AI app below.
 
 ### Claude Desktop
 
-1. Download the `.mcpb` **for your platform** from the [latest release](https://github.com/dreamiurg/mountaineers-mcp/releases/latest) — the server ships a native networking module, so the bundles are not interchangeable:
-   - Apple Silicon Mac → `mountaineers-mcp-X.Y.Z-darwin-arm64.mcpb`
-   - Intel Mac → `mountaineers-mcp-X.Y.Z-darwin-x64.mcpb`
-   - Windows → `mountaineers-mcp-X.Y.Z-win32-x64.mcpb` (or `-win32-arm64`)
+1. Download `mountaineers-mcp-X.Y.Z.mcpb` from the [latest release](https://github.com/dreamiurg/mountaineers-mcp/releases/latest) — one bundle covers Intel and Apple Silicon Macs and Windows
 2. Open Claude Desktop → **Settings → Extensions → Install Extension**
 3. Select the downloaded `.mcpb` file
 4. Ask your assistant to run the **`login`** tool (one time) — a Chrome window opens, you sign in, and authentication is cached. Required before any other tool works. See [Authentication](#authentication).

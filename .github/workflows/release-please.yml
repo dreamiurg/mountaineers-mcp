@@ -87,4 +87,4 @@ jobs:
             echo "Version mismatch: package.json=${VERSION} tag=${TAG_NAME}" >&2
             exit 1
           fi
-          gh release upload "$TAG_NAME" mountaineers-mcp-"${VERSION}"-*.mcpb --clobber
+          gh release upload "$TAG_NAME" "mountaineers-mcp-${VERSION}.mcpb" --clobber
