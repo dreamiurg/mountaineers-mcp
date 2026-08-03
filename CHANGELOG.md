@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.3](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.11.2...v1.11.3) (2026-08-03)
+
+
+### Bug Fixes
+
+* platform-correct .mcpb bundles and no more silent empty results ([#106](https://github.com/dreamiurg/mountaineers-mcp/issues/106)) ([66721d9](https://github.com/dreamiurg/mountaineers-mcp/commit/66721d9c6bbd89519811c61fef454decbc89c03e))
+
 ## [1.11.2](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.11.1...v1.11.2) (2026-07-02)
 
 ### Dependencies
