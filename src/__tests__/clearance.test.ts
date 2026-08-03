@@ -75,6 +75,20 @@ describe("loadClearance", () => {
     writeCache(ok({ cookies: [{ name: "cf_clearance", value: "cf", expires: -1 }] }));
     expect(loadClearance()).toBeNull();
   });
+  it("returns null when __ac expired but cf_clearance is still valid", () => {
+    // The real-world shape: cf_clearance lasts about a year, __ac only hours.
+    // Accepting this cache made every member-scoped page come back logged-out
+    // and parse to empty results instead of prompting for a fresh login.
+    writeCache(
+      ok({
+        cookies: [
+          { name: "cf_clearance", value: "cf", expires: 9_999_999_999 },
+          { name: "__ac", value: "ac", expires: 100 },
+        ],
+      }),
+    );
+    expect(loadClearance(200)).toBeNull();
+  });
   it("treats expires<=0 (-1 and 0) as session cookies → valid", () => {
     writeCache(
       ok({

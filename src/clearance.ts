@@ -57,7 +57,12 @@ export function loadClearance(now: number = Date.now() / 1000): Clearance | null
     return null;
   const cf = cookies.find((c) => c.name === "cf_clearance");
   if (!cf || isExpired(cf, now)) return null;
-  if (!cookies.some((c) => c.name === "__ac")) return null;
+  // __ac is the mountaineers.org login session and is far shorter-lived than
+  // cf_clearance (hours vs. a year). Checking only for its presence let an
+  // expired session look valid, so member-scoped pages came back as logged-out
+  // HTML and parsed to empty results instead of raising a "run login" error.
+  const ac = cookies.find((c) => c.name === "__ac");
+  if (!ac || isExpired(ac, now)) return null;
   return { userAgent, cookies };
 }
 
