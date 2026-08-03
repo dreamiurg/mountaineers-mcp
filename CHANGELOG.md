@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.11.3...v1.12.0) (2026-08-03)
+
+
+### Features
+
+* ship one universal .mcpb instead of per-platform bundles ([#108](https://github.com/dreamiurg/mountaineers-mcp/issues/108)) ([f55d97a](https://github.com/dreamiurg/mountaineers-mcp/commit/f55d97a05bc7ef24bcd7b1864d5ae52c2f212110))
+
 ## [1.11.3](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.11.2...v1.11.3) (2026-08-03)
 
 
