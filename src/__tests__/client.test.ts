@@ -155,3 +155,54 @@ describe("MountaineersClient higher-level fetch methods", () => {
     await expect(client.fetchHtml("/x")).rejects.toThrow(/HTTP 500/);
   });
 });
+
+// mountaineers.org answers a logged-out request with 200 + the login form rather
+// than a 401/403, so without these guards the parsers silently yield empty data.
+// Markup below is trimmed from real responses captured against the live site.
+describe("MountaineersClient detects logged-out and unrecognized responses", () => {
+  const LOGIN_PAGE =
+    '<html><body><form id="login-form">' +
+    '<input id="__ac_name" name="__ac_name" value="" type="text" />' +
+    '<input name="__ac_password" type="password" /></form></body></html>';
+
+  beforeEach(() => {
+    vi.mocked(clearance.loadClearance).mockReturnValue(CACHE);
+  });
+
+  it("fetchHtml throws instead of parsing a login page as an empty record", async () => {
+    impitFetch.mockResolvedValue(res(200, {}, LOGIN_PAGE));
+    const client = new MountaineersClient();
+    await expect(client.fetchHtml("/members/someone")).rejects.toThrow(/session expired/);
+  });
+
+  it("fetchFacetedQuery returns results when the response carries a result count", async () => {
+    impitFetch.mockResolvedValue(
+      res(200, {}, '<html><body><div id="faceted-result-count">144 results</div></body></html>'),
+    );
+    const client = new MountaineersClient();
+    const $ = await client.fetchFacetedQuery("/activities/routes-places", new URLSearchParams());
+    expect($("#faceted-result-count").text()).toContain("144");
+  });
+
+  it("fetchFacetedQuery accepts a genuinely empty result set without erroring", async () => {
+    // A real no-match search returns only this notice — no result count at all.
+    impitFetch.mockResolvedValue(
+      res(
+        200,
+        {},
+        '<html><body><p class="discreet">There are currently no items in this folder.</p></body></html>',
+      ),
+    );
+    const client = new MountaineersClient();
+    const $ = await client.fetchFacetedQuery("/activities/routes-places", new URLSearchParams());
+    expect($(".result-item")).toHaveLength(0);
+  });
+
+  it("fetchFacetedQuery throws when served neither results nor an empty notice", async () => {
+    impitFetch.mockResolvedValue(res(200, {}, "<html><body>Just a moment...</body></html>"));
+    const client = new MountaineersClient();
+    await expect(
+      client.fetchFacetedQuery("/activities/routes-places", new URLSearchParams()),
+    ).rejects.toThrow(/Unrecognized response/);
+  });
+});
