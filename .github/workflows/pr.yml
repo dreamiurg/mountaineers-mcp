@@ -83,10 +83,11 @@ jobs:
       - run: npx tsc
       # Guards the packaging defect that shipped for several releases: a plain
       # `npm ci` stages only the build host's native binding, so Linux-built
-      # bundles died on every macOS and Windows install. Packing a non-host
-      # target here fails the PR if cross-platform resolution ever regresses.
-      - name: Verify cross-platform .mcpb packaging
-        run: sh scripts/build-mcpb.sh darwin-arm64
+      # bundles died on every macOS and Windows install. The script asserts a
+      # binding is present for every target, so packing here on Linux fails the
+      # PR if cross-platform resolution ever regresses.
+      - name: Verify .mcpb packaging
+        run: sh scripts/build-mcpb.sh
 
   # SENTINEL JOB - the ONLY required check in branch protection
   required-checks:
