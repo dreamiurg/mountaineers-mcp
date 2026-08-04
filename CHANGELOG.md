@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.12.0...v1.12.1) (2026-08-04)
+
+
+### Bug Fixes
+
+* correct route trip report pagination ([#110](https://github.com/dreamiurg/mountaineers-mcp/issues/110)) ([0c34e2f](https://github.com/dreamiurg/mountaineers-mcp/commit/0c34e2f9c5e044dff35a86df56402f26879b187a))
+
 ## [1.12.0](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.11.3...v1.12.0) (2026-08-03)
 
 
