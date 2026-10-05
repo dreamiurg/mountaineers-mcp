@@ -1,0 +1,23 @@
+// Inputs that must never be fetched with the user's session cookies.
+export const OFF_SITE_URLS = [
+  "https://evil.com",
+  "https://evil.com/activities/activities/day-hike-1",
+  "http://mountaineers.org.evil.com",
+  "https://www.mountaineers.org.evil.com/activities/activities/x",
+  "https://evil.com/?https://www.mountaineers.org",
+  "https://evil.com/#https://www.mountaineers.org",
+  "https://www.mountaineers.org@evil.com",
+  "https://www.mountaineers.org@evil.com/activities/activities/x",
+  "https://user:pass@www.mountaineers.org/activities/activities/x",
+  "https://www.mountaineers.org:8443/activities/activities/x",
+  "https://evilmountaineers.org/x",
+  "http://www.mountaineers.org/activities/activities/x",
+  "file:///etc/passwd",
+  "http://localhost",
+  "http://127.0.0.1:8080/admin",
+  "http://169.254.169.254/latest/meta-data/",
+  "javascript:alert(1)",
+  "//evil.com/activities/activities/x",
+  "HTTPS://EVIL.COM/x",
+  "  https://evil.com/x",
+];
