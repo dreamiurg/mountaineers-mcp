@@ -206,3 +206,81 @@ describe("MountaineersClient detects logged-out and unrecognized responses", () 
     ).rejects.toThrow(/Unrecognized response/);
   });
 });
+
+describe("MountaineersClient keeps session cookies on mountaineers.org", () => {
+  beforeEach(() => {
+    vi.mocked(clearance.loadClearance).mockReturnValue(CACHE);
+  });
+
+  it.each([
+    "https://evil.com/steal",
+    "http://mountaineers.org.evil.com/x",
+    "https://www.mountaineers.org@evil.com/x",
+    "https://evil.com/?https://www.mountaineers.org",
+    "https://mountaineers.org/x",
+    "http://www.mountaineers.org/x",
+    "http://localhost/x",
+    "file:///etc/passwd",
+    "//evil.com/x",
+  ])("fetchRaw refuses off-origin URL %s without sending a request", async (url) => {
+    const client = new MountaineersClient();
+    await expect(client.fetchRaw(url)).rejects.toThrow(/Refusing/);
+    expect(impitFetch).not.toHaveBeenCalled();
+  });
+
+  it("fetchRaw accepts an absolute URL on the site origin", async () => {
+    impitFetch.mockResolvedValue(res(200));
+    const client = new MountaineersClient();
+    await client.fetchRaw("https://www.mountaineers.org/activities/activities/x");
+    expect(impitFetch.mock.calls[0][0]).toBe(
+      "https://www.mountaineers.org/activities/activities/x",
+    );
+  });
+
+  it("disables Impit's automatic redirect following", async () => {
+    impitFetch.mockResolvedValue(res(200));
+    const client = new MountaineersClient();
+    await client.fetchRaw("/x");
+    expect(impitFetch.mock.calls[0][1]?.redirect).toBe("manual");
+  });
+
+  it("follows a same-origin redirect with cookies", async () => {
+    impitFetch
+      .mockResolvedValueOnce(res(302, { location: "/activities/activities/y" }))
+      .mockResolvedValueOnce(res(200, {}, "ok"));
+    const client = new MountaineersClient();
+    const r = await client.fetchRaw("/activities/activities/x");
+    expect(await r.text()).toBe("ok");
+    expect(impitFetch).toHaveBeenCalledTimes(2);
+    const [secondUrl, secondInit] = impitFetch.mock.calls[1];
+    expect(secondUrl).toBe("https://www.mountaineers.org/activities/activities/y");
+    expect(new Headers(secondInit?.headers as HeadersInit).get("Cookie")).toContain("__ac=AC");
+  });
+
+  it.each([
+    "https://evil.com/collect",
+    "//evil.com/collect",
+    "http://www.mountaineers.org/x",
+    "https://mountaineers.org.evil.com/x",
+  ])("refuses a cross-origin redirect to %s and never sends cookies there", async (location) => {
+    impitFetch.mockResolvedValueOnce(res(301, { location }));
+    const client = new MountaineersClient();
+    await expect(client.fetchRaw("/x")).rejects.toThrow(/Refusing/);
+    expect(impitFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives up after too many same-origin redirects", async () => {
+    impitFetch.mockImplementation(() => Promise.resolve(res(302, { location: "/loop" })));
+    const client = new MountaineersClient();
+    await expect(client.fetchRaw("/loop")).rejects.toThrow(/Too many redirects/);
+    expect(impitFetch).toHaveBeenCalledTimes(6); // initial + 5 redirects
+  });
+
+  it("returns a 3xx without a Location header as-is", async () => {
+    impitFetch.mockResolvedValue(res(302));
+    const client = new MountaineersClient();
+    const r = await client.fetchRaw("/x");
+    expect(r.status).toBe(302);
+    expect(impitFetch).toHaveBeenCalledTimes(1);
+  });
+});

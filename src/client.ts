@@ -1,8 +1,13 @@
 import * as cheerio from "cheerio";
 import type { Impit as ImpitClass, ImpitResponse } from "impit";
 import { type Clearance, loadClearance } from "./clearance.js";
+import { SITE_ORIGIN } from "./url-helpers.js";
 
-const BASE_URL = "https://www.mountaineers.org";
+const BASE_URL = SITE_ORIGIN;
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+// mountaineers.org normally redirects at most once or twice (trailing slash,
+// moved content). A short cap keeps a redirect loop from spinning.
+const MAX_REDIRECTS = 5;
 const RATE_LIMIT_MS = 500;
 const NO_CLEARANCE_MSG = "Not signed in to mountaineers.org. Run the `login` tool to authenticate.";
 const CLEARANCE_EXPIRED_MSG =
@@ -22,6 +27,25 @@ const FACETED_EMPTY_MARKER = "no items in this folder";
 
 function cookieString(clearance: Clearance): string {
   return clearance.cookies.map((c) => `${c.name}=${c.value}`).join("; ");
+}
+
+// Resolves a request target and refuses anything off SITE_ORIGIN. The session
+// cookies are attached to every request, so this is the last line of defense
+// against a tool (or a future tool) passing through an attacker-chosen URL.
+export function resolveSameOrigin(url: string, base: string = BASE_URL): URL {
+  let target: URL;
+  try {
+    target = new URL(url, base);
+  } catch {
+    throw new Error(`Refusing to fetch invalid URL: ${JSON.stringify(url)}`);
+  }
+  if (target.origin !== BASE_URL) {
+    throw new Error(
+      `Refusing to send mountaineers.org session cookies to ${JSON.stringify(target.origin)}; ` +
+        `only ${BASE_URL} is allowed (requested ${JSON.stringify(url)})`,
+    );
+  }
+  return target;
 }
 
 export class MountaineersClient {
@@ -96,16 +120,12 @@ export class MountaineersClient {
     url: string,
     options: { headers?: Record<string, string> } = {},
   ): Promise<ImpitResponse> {
+    // Validate before touching the clearance cache: an off-origin URL must fail
+    // without ever pairing the cookies with that destination.
+    const target = resolveSameOrigin(url);
     let clearance = this.ensureClearance();
     const impit = await this.getImpit();
-    const fullUrl = url.startsWith("http") ? url : `${BASE_URL}${url}`;
-    // Only inject cookies; let Impit own the User-Agent so it stays consistent
-    // with the Chrome TLS fingerprint it presents (a mismatched UA can re-trip CF).
-    const send = () =>
-      impit.fetch(fullUrl, {
-        headers: { ...options.headers, Cookie: cookieString(clearance) },
-        redirect: "follow",
-      });
+    const send = () => this.sendFollowingSameOrigin(impit, target, options.headers, clearance);
 
     await this.rateLimit();
     let response = await send();
@@ -125,6 +145,33 @@ export class MountaineersClient {
       }
     }
     return response;
+  }
+
+  // Impit's built-in `redirect: "follow"` re-sends the request headers we set
+  // (including Cookie) to whatever host a Location header names. Follow
+  // redirects by hand instead, and only while they stay on SITE_ORIGIN.
+  private async sendFollowingSameOrigin(
+    impit: ImpitClass,
+    start: URL,
+    headers: Record<string, string> | undefined,
+    clearance: Clearance,
+  ): Promise<ImpitResponse> {
+    let current = start;
+    for (let hops = 0; ; hops++) {
+      // Only inject cookies; let Impit own the User-Agent so it stays consistent
+      // with the Chrome TLS fingerprint it presents (a mismatched UA can re-trip CF).
+      const response = await impit.fetch(current.href, {
+        headers: { ...headers, Cookie: cookieString(clearance) },
+        redirect: "manual",
+      });
+      const location = response.headers.get("location");
+      if (!REDIRECT_STATUSES.has(response.status) || !location) return response;
+      await this.discard(response);
+      if (hops >= MAX_REDIRECTS) {
+        throw new Error(`Too many redirects (>${MAX_REDIRECTS}) fetching ${start.href}`);
+      }
+      current = resolveSameOrigin(location, current.href);
+    }
   }
 
   // Every HTML path funnels through here so that a logged-out response fails

@@ -20,3 +20,59 @@ export function extractSlugAfterPrefix(input: string, prefix: string): string {
     .replace(/^\/+|\/+$/g, "");
   return trimmed.split("/")[0] ?? "";
 }
+
+// The only origin the client ever talks to. Session cookies are scoped to it.
+export const SITE_ORIGIN = "https://www.mountaineers.org";
+const ALLOWED_HOSTS = new Set(["www.mountaineers.org", "mountaineers.org"]);
+// Anything with a URL scheme ("https:", "file:", "javascript:") or a
+// protocol-relative "//host" prefix is treated as an absolute URL and must pass
+// host validation; everything else is a slug or site path.
+const ABSOLUTE_URL_RE = /^(?:[a-z][a-z0-9+.-]*:|\/\/)/i;
+
+function offSiteError(input: string, reason: string): Error {
+  return new Error(
+    `URL must be an https://www.mountaineers.org link (${reason}); got: ${JSON.stringify(input)}`,
+  );
+}
+
+// Parses an absolute URL and accepts it only if it points at mountaineers.org
+// over https with no credentials or custom port. Uses the WHATWG parser rather
+// than prefix/regex checks, so lookalikes such as "mountaineers.org.evil.com",
+// "www.mountaineers.org@evil.com" or "evil.com/?https://www.mountaineers.org"
+// are rejected on their real hostname.
+export function parseMountaineersUrl(input: string): URL {
+  let parsed: URL;
+  try {
+    parsed = new URL(input);
+  } catch {
+    throw offSiteError(input, "not a valid absolute URL");
+  }
+  if (parsed.protocol !== "https:") throw offSiteError(input, "only https is allowed");
+  if (!ALLOWED_HOSTS.has(parsed.hostname)) throw offSiteError(input, "off-site host");
+  if (parsed.username || parsed.password) throw offSiteError(input, "credentials not allowed");
+  if (parsed.port) throw offSiteError(input, "custom port not allowed");
+  return parsed;
+}
+
+// Resolves tool input to an absolute URL on SITE_ORIGIN:
+// - full URL: validated with parseMountaineersUrl, canonicalized to www;
+// - site path ("/activities/..."): resolved against SITE_ORIGIN;
+// - bare slug: appended to `slugPrefix` (e.g. "/activities/activities").
+// Off-site input throws instead of being fetched.
+export function resolveMountaineersUrl(input: string, slugPrefix: string): string {
+  const trimmed = input.trim();
+  let path: string;
+  if (ABSOLUTE_URL_RE.test(trimmed)) {
+    if (trimmed.startsWith("//")) throw offSiteError(input, "protocol-relative URL");
+    const parsed = parseMountaineersUrl(trimmed);
+    path = `${parsed.pathname}${parsed.search}`;
+  } else if (trimmed.startsWith("/")) {
+    path = trimmed;
+  } else {
+    path = `/${slugPrefix.replace(/^\/+|\/+$/g, "")}/${trimmed}`;
+  }
+  const resolved = `${SITE_ORIGIN}${path}`;
+  // Belt and braces: whatever the input, the result must stay on SITE_ORIGIN.
+  if (new URL(resolved).origin !== SITE_ORIGIN) throw offSiteError(input, "off-site host");
+  return resolved;
+}
