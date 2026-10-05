@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.2](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.12.1...v1.12.2) (2026-10-05)
+
+
+### Bug Fixes
+
+* restrict URL inputs and cookies to mountaineers.org ([#125](https://github.com/dreamiurg/mountaineers-mcp/issues/125)) ([a64f252](https://github.com/dreamiurg/mountaineers-mcp/commit/a64f2529cb68e1a68ae5975167ed7b23254549e5))
+
 ## [1.12.1](https://github.com/dreamiurg/mountaineers-mcp/compare/v1.12.0...v1.12.1) (2026-08-04)
 
 
